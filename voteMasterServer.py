@@ -10,7 +10,7 @@ question = ['Отказ от серебряно-золотого междуна�
 from bottle import route, run, template
 
 @route('/authorization/<round>/<name>')
-def index(round, name):
+def authorization(round, name):
     if round == 'one':
         i = 0
         if name == 'riba_kit':
@@ -52,5 +52,13 @@ def index(round, name):
         else:
             return question[i]
 
+
+
+@route('/answer/<round>/<name>/<ans>')
+def answer(round, name, ans):
+    count = 0
+    if round == 'one':
+        count += 1
+        return count
 
 run(host='localhost', port=8080)
