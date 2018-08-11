@@ -52,13 +52,17 @@ def authorization(round, name):
         else:
             return question[i]
 
-
+votingResult = [0, 0]
 
 @route('/answer/<round>/<name>/<ans>')
 def answer(round, name, ans):
-    count = 0
-    if round == 'one':
-        count += 1
-        return count
+#    count = 0
+    global votingResult
+    if ans == 'yes':
+        votingResult[0] += 1
+        return 'Проголосовало ЗА: ' + str(votingResult[0]) +'    ***     Проголосовало ПРОТИВ: '+str(votingResult[1])
+    if ans == 'no':
+        votingResult[1] += 1
+        return 'Проголосовало ЗА: ' + str(votingResult[0]) +'    ***     Проголосовало ПРОТИВ: '+str(votingResult[1])
 
 run(host='localhost', port=8080)

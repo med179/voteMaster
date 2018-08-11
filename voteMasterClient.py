@@ -71,6 +71,7 @@ class MySettings(object):
         self.clientCoutnry = 'test'
         self.rounds = ['one', 'two', 'three', 'four', 'five']
         self.lap = 'one'
+        self.IP_Adress = 'http://localhost:8080' 
 
 
 class Waiting(Screen):
@@ -92,15 +93,31 @@ class Answer(Screen):
         super(Answer, self).__init__(**kwargs)
         self.settings = kwargs['settings']
 
-        answerLayout = BoxLayout()
+        answerLayout = BoxLayout(orientation='vertical')
         self.questionLbl = Label(text='TestTEXT')
 
-        questionRequests = requests.get('http://localhost:8080/authorization/'+self.settings.lap+'/'+self.settings.clientCoutnry)
+        questionRequests = requests.get(self.settings.IP_Adress+'/authorization/'+self.settings.lap+'/'+self.settings.clientCoutnry)
         self.questionLbl.text = questionRequests.text
+        btnLayout = BoxLayout(spacing = 20)
+        btnYes = Button(text='YES', on_press = self.answerYes)
+        btnNo = Button(text='NO', on_press = self.answerNo)
+        self.votingResultLbl = Label(text='Проголосовало ЗА: 0'+'    ***     Проголосовало ПРОТИВ: 0')
+
+        btnLayout.add_widget(btnYes)
+        btnLayout.add_widget(btnNo)
+        answerLayout.add_widget(self.votingResultLbl)
         answerLayout.add_widget(self.questionLbl)
+        answerLayout.add_widget(btnLayout)
         self.add_widget(answerLayout)
 
 
+    def answerYes(self, *args):
+            sendAnswer = requests.get(self.settings.IP_Adress+'/answer/'+self.settings.lap+'/'+self.settings.clientCoutnry+'/yes')
+            self.votingResultLbl.text = sendAnswer.text
+
+    def answerNo(self, *args):
+            sendAnswer = requests.get(self.settings.IP_Adress+'/answer/'+self.settings.lap+'/'+self.settings.clientCoutnry+'/no')
+            self.votingResultLbl.text = sendAnswer.text
 
 
 if __name__ == "__main__":
