@@ -8,6 +8,7 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import Screen, ScreenManager
+import requests
 
 
 class voteMaser(App):
@@ -16,7 +17,7 @@ class voteMaser(App):
         settings = MySettings()
         authorization = Authorization(name='Authorization', settings=settings)
         answer = Answer(name='Answer', settings=settings)
-        waiting = Waiting(name='Waiting')
+        waiting = Waiting(name='Waiting', settings=settings)
         myScreenmanager.add_widget(authorization)
         myScreenmanager.add_widget(answer)
         myScreenmanager.add_widget(waiting)
@@ -28,12 +29,13 @@ class Authorization(Screen):
     def __init__(self, **kwargs):
         super(Authorization, self).__init__(**kwargs)
 
+        self.settings = kwargs['settings']
         authorizationLayout = BoxLayout(spacing = 10, size_hint = [1, .5])
         riba_kitBtn = Button(text = 'riba_kitBtn', on_press = self.riba_kitPress)
-        tridevCarstvoBtn = Button(text = 'tridevCarstvoBtn')
-        lukomoreBtn = Button(text = 'lukomoreBtn')
-        morskayaDergavaBtn = Button(text = 'morskayaDergavaBtn')
-        shahmanBtn = Button(text = 'shahmanBtn')
+        tridevCarstvoBtn = Button(text = 'tridevCarstvoBtn', on_press = self.tridevCarstvoPress)
+        lukomoreBtn = Button(text = 'lukomoreBtn', on_press = self.lukomorePress)
+        morskayaDergavaBtn = Button(text = 'morskayaDergavaBtn', on_press = self.morskayaDergavaPress)
+        shahmanBtn = Button(text = 'shahmanBtn', on_press = self.shahmanPress)
         authorizationLayout.add_widget(riba_kitBtn)
         authorizationLayout.add_widget(tridevCarstvoBtn)
         authorizationLayout.add_widget(lukomoreBtn)
@@ -45,24 +47,58 @@ class Authorization(Screen):
         self.manager.current = 'Waiting'
         self.settings.clientCoutnry = name
 
+
     def riba_kitPress(self, *args):
         self.login('riba_kit')
+
+    def tridevCarstvoPress(self, *args):
+        self.login('tridevCarstvo')
+
+    def lukomorePress(self, *args):
+        self.login('lukomore')
+
+    def morskayaDergavaPress(self, *args):
+        self.login('morskayaDergava')
+
+    def shahmanPress(self, *args):
+        self.login('shahman')
+
+
 
 #тут нужно разобраться, что такое object
 class MySettings(object):
     def __init__(self):
-        clientCoutnry = 'test'
+        self.clientCoutnry = 'test'
+        self.rounds = ['one', 'two', 'three', 'four', 'five']
+        self.lap = 'one'
 
 
 class Waiting(Screen):
     def __init__(self, **kwargs):
         super(Waiting, self).__init__(**kwargs)
-
-
+        self.settings = kwargs['settings']
+        waitLayout = BoxLayout()
+        waitBtn = Button(text='Приступрить к голосованию', on_press=self.changeScreen)
+        waitLayout.add_widget(waitBtn)
+        self.add_widget(waitLayout)
+    
+    def changeScreen(self, *args):
+        self.manager.current = 'Answer'
+        print(self.settings.lap)
+        print(self.settings.clientCoutnry)
 
 class Answer(Screen):
     def __init__(self, **kwargs):
         super(Answer, self).__init__(**kwargs)
+        self.settings = kwargs['settings']
+
+        answerLayout = BoxLayout()
+        self.questionLbl = Label(text='TestTEXT')
+
+        questionRequests = requests.get('http://localhost:8080/authorization/'+self.settings.lap+'/'+self.settings.clientCoutnry)
+        self.questionLbl.text = questionRequests.text
+        answerLayout.add_widget(self.questionLbl)
+        self.add_widget(answerLayout)
 
 
 
