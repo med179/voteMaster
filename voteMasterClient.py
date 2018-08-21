@@ -28,7 +28,7 @@ class voteMaser(App):
 class Authorization(Screen):
     def __init__(self, **kwargs):
         super(Authorization, self).__init__(**kwargs)
-
+#добавить администратора
         self.settings = kwargs['settings']
         authorizationLayout = BoxLayout(spacing = 10, size_hint = [1, .5])
         riba_kitBtn = Button(text = 'riba_kitBtn', on_press = self.riba_kitPress)
@@ -82,9 +82,10 @@ class Waiting(Screen):
         waitBtn = Button(text='Приступрить к голосованию', on_press=self.changeScreen)
         waitLayout.add_widget(waitBtn)
         self.add_widget(waitLayout)
-    
+        
     def changeScreen(self, *args):
         self.manager.current = 'Answer'
+        requests.get(self.settings.IP_Adress+'/authorization/'+self.settings.clientCoutnry)
         print(self.settings.lap)
         print(self.settings.clientCoutnry)
 
@@ -96,8 +97,6 @@ class Answer(Screen):
         answerLayout = BoxLayout(orientation='vertical')
         self.questionLbl = Label(text='TestTEXT')
 
-        questionRequests = requests.get(self.settings.IP_Adress+'/authorization/'+self.settings.lap+'/'+self.settings.clientCoutnry)
-        self.questionLbl.text = questionRequests.text
         btnLayout = BoxLayout(spacing = 20)
         btnYes = Button(text='YES', on_press = self.answerYes)
         btnNo = Button(text='NO', on_press = self.answerNo)
@@ -109,6 +108,12 @@ class Answer(Screen):
         answerLayout.add_widget(self.questionLbl)
         answerLayout.add_widget(btnLayout)
         self.add_widget(answerLayout)
+        self.bind(on_pre_enter=self.updateLbl)
+
+
+    def updateLbl(self, *args):
+        questionRequests = requests.get(self.settings.IP_Adress+'/interrogatory/'+self.settings.lap+'/'+self.settings.clientCoutnry)
+        self.questionLbl.text = questionRequests.text
 
 
     def answerYes(self, *args):

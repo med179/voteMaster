@@ -5,12 +5,18 @@
 #voteMaser - server part
 
 #список стран пользователей
-countries = ['riba_kit', 'tridevCarstvo', 'lukomore', 'morskayaDergava', 'shahman']
+countries = {'riba_kit':'', 'tridevCarstvo':'', 'lukomore':'', 'morskayaDergava':'', 'shahman':''}
 question = ["TEST111", 'Отказ от серебряно-золотого международного валютного стандарта', 'Использование территории Чудо-юдо рыбы Кита для размещения коалиционного флота', 'Приостановление членства в Организации Объединенных сказочных Наций Кощеева царства', 'Введение эмбарго на мертвую воду для Кощеева царства', 'Создание бесполетной зоны над Кощеевым царством']
 from bottle import route, run, template
 
+
 @route('/authorization/<round>/<name>')
-def authorization(round, name):
+def authorization(name):
+    countries[name] = 'im ready'
+    return countries
+
+@route('/interrogatory/<round>/<name>')
+def interrogatory(round, name):
     if round == 'one':
         i = 0
         if name == 'riba_kit':
