@@ -5,15 +5,18 @@
 #voteMaser - server part
 
 #список стран пользователей
-countries = {'riba_kit':'', 'tridevCarstvo':'', 'lukomore':'', 'morskayaDergava':'', 'shahman':''}
+countries = {'riba_kit':'', 'tridevCarstvo':'', 'lukomore':'', 'morskayaDergava':'', 'shamahan':''}
 question = ["TEST111", 'Отказ от серебряно-золотого международного валютного стандарта', 'Использование территории Чудо-юдо рыбы Кита для размещения коалиционного флота', 'Приостановление членства в Организации Объединенных сказочных Наций Кощеева царства', 'Введение эмбарго на мертвую воду для Кощеева царства', 'Создание бесполетной зоны над Кощеевым царством']
 from bottle import route, run, template
 
 
-@route('/authorization/<round>/<name>')
+@route('/authorization/<name>')
 def authorization(name):
-    countries[name] = 'im ready'
-    return countries
+    if name == 'admin':
+        return countries
+    else:
+        countries[name] = 'im ready'
+    
 
 @route('/interrogatory/<round>/<name>')
 def interrogatory(round, name):
@@ -43,7 +46,7 @@ def interrogatory(round, name):
             return question[i]
     if round == 'four':
         i = 3
-        if name == 'shahman':
+        if name == 'shamahan':
             return question[i]  + '<br /> <b>ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ЗА</b>'
         if name == 'lukomore':
             return question[i]  + '<br /> <b>ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ПРОТИВ</b>'
@@ -53,7 +56,7 @@ def interrogatory(round, name):
         i = 4
         if name == 'morskayaDergava':
             return question[i]  + '<br /> <b>ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ЗА</b>'
-        if name == 'shahman':
+        if name == 'shamahan':
             return question[i]  + '<br /> <b>ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ПРОТИВ</b>'
         else:
             return question[i]

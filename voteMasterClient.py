@@ -18,9 +18,11 @@ class voteMaser(App):
         authorization = Authorization(name='Authorization', settings=settings)
         answer = Answer(name='Answer', settings=settings)
         waiting = Waiting(name='Waiting', settings=settings)
+        admin = Admin(name='Admin', settings=settings)
         myScreenmanager.add_widget(authorization)
         myScreenmanager.add_widget(answer)
         myScreenmanager.add_widget(waiting)
+        myScreenmanager.add_widget(admin)
       
         myScreenmanager.current = 'Authorization'
         return myScreenmanager
@@ -28,24 +30,30 @@ class voteMaser(App):
 class Authorization(Screen):
     def __init__(self, **kwargs):
         super(Authorization, self).__init__(**kwargs)
-#добавить администратора
+#добавить администратора 
         self.settings = kwargs['settings']
         authorizationLayout = BoxLayout(spacing = 10, size_hint = [1, .5])
-        riba_kitBtn = Button(text = 'riba_kitBtn', on_press = self.riba_kitPress)
-        tridevCarstvoBtn = Button(text = 'tridevCarstvoBtn', on_press = self.tridevCarstvoPress)
-        lukomoreBtn = Button(text = 'lukomoreBtn', on_press = self.lukomorePress)
-        morskayaDergavaBtn = Button(text = 'morskayaDergavaBtn', on_press = self.morskayaDergavaPress)
-        shahmanBtn = Button(text = 'shahmanBtn', on_press = self.shahmanPress)
+        riba_kitBtn = Button(text='riba_kitBtn', on_press=self.riba_kitPress)
+        tridevCarstvoBtn = Button(text='tridevCarstvoBtn', on_press=self.tridevCarstvoPress)
+        lukomoreBtn = Button(text='lukomoreBtn', on_press=self.lukomorePress)
+        morskayaDergavaBtn = Button(text='morskayaDergavaBtn', on_press=self.morskayaDergavaPress)
+        shamahanBtn = Button(text='shamahanBtn', on_press=self.shamahanPress)
+        adminBtn = Button(text='admin', on_press=self.adminPress, background_color=[1, 0, 0, 1])
         authorizationLayout.add_widget(riba_kitBtn)
         authorizationLayout.add_widget(tridevCarstvoBtn)
         authorizationLayout.add_widget(lukomoreBtn)
         authorizationLayout.add_widget(morskayaDergavaBtn)
-        authorizationLayout.add_widget(shahmanBtn)
+        authorizationLayout.add_widget(shamahanBtn)
+        authorizationLayout.add_widget(adminBtn)
         self.add_widget(authorizationLayout)
 
     def login(self, name):
         self.manager.current = 'Waiting'
         self.settings.clientCoutnry = name
+
+    def adminPress(self, *args):
+        self.settings.clientCoutnry = 'admin'
+        self.manager.current = 'Admin'
 
 
     def riba_kitPress(self, *args):
@@ -60,9 +68,35 @@ class Authorization(Screen):
     def morskayaDergavaPress(self, *args):
         self.login('morskayaDergava')
 
-    def shahmanPress(self, *args):
-        self.login('shahman')
+    def shamahanPress(self, *args):
+        self.login('shamahan')
 
+class Admin(Screen):
+    def __init__(self, **kwargs):
+        super(Admin, self).__init__(**kwargs)
+        self.settings = kwargs['settings']
+        adminLayout = BoxLayout(orientation='vertical', spacing=10)
+        readyLabels = BoxLayout(orientation='horizontal', spacing=10)
+
+        riba_kitRdyLbl = Label(text='riba_kit is not ready')
+        tridevCarstvoRdyLbl = Label(text='tridevCarstvo is not ready')
+        lukomoreRdyLbl = Label(text='lukomore is not ready')
+        morskayaDergavaRdyLbl = Label(text='morskayaDergava is not ready')
+        shamahanRdyLbl = Label(text='shamahan is not ready')
+        readyLabels.add_widget(riba_kitRdyLbl)
+        readyLabels.add_widget(tridevCarstvoRdyLbl)
+        readyLabels.add_widget(lukomoreRdyLbl)
+        readyLabels.add_widget(morskayaDergavaRdyLbl)
+        readyLabels.add_widget(shamahanRdyLbl)
+        startBtn = Button(text='Start voting', on_press=self.startVoting, size_hint=[.3, .3], background_color=[1, 0, 0, 1])
+        adminLayout.add_widget(readyLabels)
+        adminLayout.add_widget(startBtn)
+        self.add_widget(adminLayout)
+
+    def startVoting(self, *args):
+        #доделать, сейчас показывает статус участников
+        isPlayersReady = requests.get(self.settings.IP_Adress+'/authorization/admin')
+        print(isPlayersReady.text)
 
 
 #тут нужно разобраться, что такое object
