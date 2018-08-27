@@ -6,7 +6,7 @@
 
 #список стран пользователей
 countries = {'riba_kit':'', 'tridevCarstvo':'', 'lukomore':'', 'morskayaDergava':'', 'shamahan':''}
-question = ["TEST111", 'Отказ от серебряно-золотого международного валютного стандарта', 'Использование территории Чудо-юдо рыбы Кита для размещения коалиционного флота', 'Приостановление членства в Организации Объединенных сказочных Наций Кощеева царства', 'Введение эмбарго на мертвую воду для Кощеева царства', 'Создание бесполетной зоны над Кощеевым царством']
+question = ['Отказ от серебряно-золотого международного валютного стандарта', 'Использование территории Чудо-юдо рыбы Кита для размещения коалиционного флота', 'Приостановление членства в Организации Объединенных сказочных Наций Кощеева царства', 'Введение эмбарго на мертвую воду для Кощеева царства', 'Создание бесполетной зоны над Кощеевым царством']
 status = {'round':'zero'}
 
 from bottle import route, run, template
@@ -63,17 +63,20 @@ def interrogatory(round, name):
         else:
             return question[i]
 
-votingResult = [0, 0]
+votingResult = {'one_yes':0, 'one_no':0, 'two_yes':0, 'two_no':0, 'three_yes':0, 'three_no':0, 'four_yes':0, 'four_no':0, 'five_yes':0, 'five_no':0}
+
 
 @route('/answer/<round>/<name>/<ans>')
 def answer(round, name, ans):
-#    count = 0
     global votingResult
-    if ans == 'yes':
-        votingResult[0] += 1
-        return 'Проголосовало ЗА: ' + str(votingResult[0]) +'    ***     Проголосовало ПРОТИВ: '+str(votingResult[1])
-    if ans == 'no':
-        votingResult[1] += 1
-        return 'Проголосовало ЗА: ' + str(votingResult[0]) +'    ***     Проголосовало ПРОТИВ: '+str(votingResult[1])
+    key = round + '_' + ans
+    votingResult[key] += 1
+    return 'Проголосовало ЗА: ' + str(votingResult[round + '_yes']) +'    ***     Проголосовало ПРОТИВ: '+str(votingResult[round + '_no'])
+
+@route('/result/<round>')
+def result(round):
+    return votingResult
+
+
 
 run(host='localhost', port=8080)

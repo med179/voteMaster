@@ -22,10 +22,12 @@ class voteMaser(App):
         answer = Answer(name='Answer', settings=settings)
         waiting = Waiting(name='Waiting', settings=settings)
         admin = Admin(name='Admin', settings=settings)
+        result = Result(name='Result', settings=settings)
         myScreenmanager.add_widget(authorization)
         myScreenmanager.add_widget(answer)
         myScreenmanager.add_widget(waiting)
-        myScreenmanager.add_widget(admin)    
+        myScreenmanager.add_widget(admin) 
+        myScreenmanager.add_widget(result)    
         myScreenmanager.current = 'Authorization'
         return myScreenmanager
 
@@ -88,10 +90,14 @@ class Admin(Screen):
         readyBtns.add_widget(self.lukomoreRdyLbl)
         readyBtns.add_widget(self.morskayaDergavaRdyLbl)
         readyBtns.add_widget(self.shamahanRdyLbl)
-        startBtn = Button(text='Start voting (get status)', on_press=self.startVoting, size_hint=[.3, .3], background_color=[1, 0, 0, 1])
+        startBtn = Button(text='Start voting (get status)',  size_hint=[.3, .3], background_color=[1, 0, 0, 1])
         adminLayout.add_widget(readyBtns)
         adminLayout.add_widget(startBtn)
         self.add_widget(adminLayout)
+        self.bind(on_pre_enter=self.callback)
+
+    def callback(self, *args):
+        Clock.schedule_interval(self.startVoting, 1)
 
     def startVoting(self, *args):
         #доделать, сейчас показывает статус участников
@@ -100,13 +106,13 @@ class Admin(Screen):
         if playersStatus['riba_kit'] == 'im ready':
             self.riba_kitRdyLbl.background_color = [0, 1, 0, 1]
         if playersStatus['tridevCarstvo'] == 'im ready':
-            self.riba_kitRdyLbl.background_color = [0, 1, 0, 1]
+            self.tridevCarstvoRdyLbl.background_color = [0, 1, 0, 1]
         if playersStatus['lukomore'] == 'im ready':
-            self.riba_kitRdyLbl.background_color = [0, 1, 0, 1]
+            self.lukomoreRdyLbl.background_color = [0, 1, 0, 1]
         if playersStatus['morskayaDergava'] == 'im ready':
-            self.riba_kitRdyLbl.background_color = [0, 1, 0, 1]
+            self.morskayaDergavaRdyLbl.background_color = [0, 1, 0, 1]
         if playersStatus['shamahan'] == 'im ready':
-            self.riba_kitRdyLbl.background_color = [0, 1, 0, 1]        
+            self.shamahanRdyLbl.background_color = [0, 1, 0, 1]        
         print(isPlayersReady.text)
 
 
@@ -115,7 +121,7 @@ class MySettings(object):
     def __init__(self):
         self.clientCoutnry = 'test'
         self.rounds = ['one', 'two', 'three', 'four', 'five']
-        self.lap = 'one'
+        self.round = 'one'
         self.IP_Adress = 'http://localhost:8080' 
 
 
@@ -131,7 +137,7 @@ class Waiting(Screen):
     def changeScreen(self, *args):
         self.manager.current = 'Answer'
         requests.get(self.settings.IP_Adress+'/authorization/'+self.settings.clientCoutnry)
-        print(self.settings.lap)
+        print(self.settings.round)
         print(self.settings.clientCoutnry)
 
 
@@ -154,16 +160,45 @@ class Answer(Screen):
         self.bind(on_pre_enter=self.updateLbl)
 
     def updateLbl(self, *args):
-        questionRequests = requests.get(self.settings.IP_Adress+'/interrogatory/'+self.settings.lap+'/'+self.settings.clientCoutnry)
+        questionRequests = requests.get(self.settings.IP_Adress+'/interrogatory/'+self.settings.round+'/'+self.settings.clientCoutnry)
         self.questionLbl.text = questionRequests.text
 
+#тут можно оптимизировать
+
     def answerYes(self, *args):
-            sendAnswer = requests.get(self.settings.IP_Adress+'/answer/'+self.settings.lap+'/'+self.settings.clientCoutnry+'/yes')
+            sendAnswer = requests.get(self.settings.IP_Adress+'/answer/'+self.settings.round+'/'+self.settings.clientCoutnry+'/yes')
             self.votingResultLbl.text = sendAnswer.text
+            self.manager.current = 'Result'
 
     def answerNo(self, *args):
-            sendAnswer = requests.get(self.settings.IP_Adress+'/answer/'+self.settings.lap+'/'+self.settings.clientCoutnry+'/no')
+            sendAnswer = requests.get(self.settings.IP_Adress+'/answer/'+self.settings.round+'/'+self.settings.clientCoutnry+'/no')
             self.votingResultLbl.text = sendAnswer.text
+            self.manager.current = 'Result'
+
+
+class Result(Screen):
+    def __init__(self, **kwargs):
+        super(Result, self).__init__(**kwargs)
+        self.settings = kwargs['settings']
+        result = BoxLayout()
+
+        self.ansYes = Label(text='0')
+        self.ansNo = Label(text='0')
+
+        result.add_widget(self.ansYes)
+        result.add_widget(self.ansNo)
+    
+        self.add_widget(result)
+        self.bind(on_pre_enter=self.callback)
+
+    def callback(self, *args):
+        Clock.schedule_interval(self.updateLbl, 1)
+
+    def updateLbl(self, *args):
+        resultJS = requests.get(self.settings.IP_Adress+'/result/'+self.settings.round)
+        result = resultJS.json()
+        self.ansYes.text = str(result[self.settings.round+'_yes'])
+        self.ansNo.text = str(result[self.settings.round+'_no'])
 
 
 if __name__ == "__main__":
