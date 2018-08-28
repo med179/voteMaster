@@ -7,10 +7,38 @@
 #список стран пользователей
 countries = {'riba_kit':'', 'tridevCarstvo':'', 'lukomore':'', 'morskayaDergava':'', 'shamahan':''}
 question = ['Отказ от серебряно-золотого международного валютного стандарта', 'Использование территории Чудо-юдо рыбы Кита для размещения коалиционного флота', 'Приостановление членства в Организации Объединенных сказочных Наций Кощеева царства', 'Введение эмбарго на мертвую воду для Кощеева царства', 'Создание бесполетной зоны над Кощеевым царством']
-status = {'round':'zero'}
+statusVote = {'round':'zero'}
 
 from bottle import route, run, template
 
+
+@route('/changeStatusVote')
+def changeStatusVote():
+    global statusVote
+    if statusVote['round'] == 'five':
+        statusVote['round'] = 'final'             
+    if statusVote['round'] == 'four':
+        statusVote['round'] = 'five'
+    if statusVote['round'] == 'tree':
+        statusVote['round'] = 'four'
+    if statusVote['round'] == 'two': 
+        statusVote['round'] = 'tree'
+    if statusVote['round'] == 'one':
+        statusVote['round'] = 'two'
+    if statusVote['round'] == 'zero':
+        statusVote['round'] = 'one'
+
+    print('***************************************')
+    print(statusVote)
+    return statusVote
+
+           
+
+
+@route('/status')
+def status():
+    global statusVote
+    return statusVote
 
 @route('/authorization/<name>')
 def authorization(name):

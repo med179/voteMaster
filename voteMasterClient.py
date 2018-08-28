@@ -90,11 +90,15 @@ class Admin(Screen):
         readyBtns.add_widget(self.lukomoreRdyLbl)
         readyBtns.add_widget(self.morskayaDergavaRdyLbl)
         readyBtns.add_widget(self.shamahanRdyLbl)
-        startBtn = Button(text='Start voting (get status)',  size_hint=[.3, .3], background_color=[1, 0, 0, 1])
+        startBtn = Button(text='Start voting (get status)',  size_hint=[.3, .3], on_press=self.changeStatusVote, background_color=[1, 0, 0, 1])
         adminLayout.add_widget(readyBtns)
         adminLayout.add_widget(startBtn)
         self.add_widget(adminLayout)
         self.bind(on_pre_enter=self.callback)
+
+    def changeStatusVote(self, *args):
+        a = requests.get(self.settings.IP_Adress+'/changeStatusVote')
+        print(a.text) 
 
     def callback(self, *args):
         Clock.schedule_interval(self.startVoting, 1)
@@ -120,8 +124,8 @@ class Admin(Screen):
 class MySettings(object):
     def __init__(self):
         self.clientCoutnry = 'test'
-        self.rounds = ['one', 'two', 'three', 'four', 'five']
-        self.round = 'one'
+        self.rounds = ['zero', 'one', 'two', 'three', 'four', 'five', 'final']
+        self.round = 'zero'
         self.IP_Adress = 'http://localhost:8080' 
 
 
@@ -130,15 +134,19 @@ class Waiting(Screen):
         super(Waiting, self).__init__(**kwargs)
         self.settings = kwargs['settings']
         waitLayout = BoxLayout()
-        waitBtn = Button(text='Приступрить к голосованию', on_press=self.changeScreen)
+        waitBtn = Button(text='Приступрить к голосованию', on_press=self.callback)
         waitLayout.add_widget(waitBtn)
         self.add_widget(waitLayout)
         
+    def callback(self, *args):
+        Clock.schedule_interval(self.changeScreen, 1)
+
     def changeScreen(self, *args):
-        self.manager.current = 'Answer'
         requests.get(self.settings.IP_Adress+'/authorization/'+self.settings.clientCoutnry)
-        print(self.settings.round)
-        print(self.settings.clientCoutnry)
+        statusJS = requests.get(self.settings.IP_Adress+'/status')
+        status = statusJS.json()
+        if status['round'] == 'one':
+            self.manager.current = 'Answer'
 
 
 class Answer(Screen):
