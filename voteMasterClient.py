@@ -97,14 +97,12 @@ class Admin(Screen):
         self.bind(on_pre_enter=self.callback)
 
     def changeStatusVote(self, *args):
-        a = requests.get(self.settings.IP_Adress+'/changeStatusVote')
-        print(a.text) 
+        requests.get(self.settings.IP_Adress+'/changeStatusVote')
 
     def callback(self, *args):
-        Clock.schedule_interval(self.startVoting, 1)
+        Clock.schedule_interval(self.statusPlayrs, 1)
 
-    def startVoting(self, *args):
-        #доделать, сейчас показывает статус участников
+    def statusPlayrs(self, *args):
         isPlayersReady = requests.get(self.settings.IP_Adress+'/authorization/admin')
         playersStatus = isPlayersReady.json()
         if playersStatus['riba_kit'] == 'im ready':
@@ -117,7 +115,7 @@ class Admin(Screen):
             self.morskayaDergavaRdyLbl.background_color = [0, 1, 0, 1]
         if playersStatus['shamahan'] == 'im ready':
             self.shamahanRdyLbl.background_color = [0, 1, 0, 1]        
-        print(isPlayersReady.text)
+
 
 
 #тут нужно разобраться, что такое object
@@ -146,6 +144,19 @@ class Waiting(Screen):
         statusJS = requests.get(self.settings.IP_Adress+'/status')
         status = statusJS.json()
         if status['round'] == 'one':
+            self.settings.round = 'one'
+            self.manager.current = 'Answer'
+        if status['round'] == 'two':
+            self.settings.round = 'two'
+            self.manager.current = 'Answer'
+        if status['round'] == 'three':
+            self.settings.round = 'three'
+            self.manager.current = 'Answer'
+        if status['round'] == 'four':
+            self.settings.round = 'four'
+            self.manager.current = 'Answer'
+        if status['round'] == 'five':
+            self.settings.round = 'five'
             self.manager.current = 'Answer'
 
 
@@ -170,8 +181,6 @@ class Answer(Screen):
     def updateLbl(self, *args):
         questionRequests = requests.get(self.settings.IP_Adress+'/interrogatory/'+self.settings.round+'/'+self.settings.clientCoutnry)
         self.questionLbl.text = questionRequests.text
-
-#тут можно оптимизировать
 
     def answerYes(self, *args):
             sendAnswer = requests.get(self.settings.IP_Adress+'/answer/'+self.settings.round+'/'+self.settings.clientCoutnry+'/yes')
@@ -206,8 +215,26 @@ class Result(Screen):
         resultJS = requests.get(self.settings.IP_Adress+'/result/'+self.settings.round)
         result = resultJS.json()
         self.ansYes.text = str(result[self.settings.round+'_yes'])
-        self.ansNo.text = str(result[self.settings.round+'_no'])
-
+        self.ansNo.text = str(result[self.settings.round+'_no'])  
+#change screen    
+        statusJS = requests.get(self.settings.IP_Adress+'/status')
+        status = statusJS.json()
+        if status['round'] == 'one':
+            self.settings.round = 'one'
+            self.manager.current = 'Answer'
+        if status['round'] == 'two':
+            self.settings.round = 'two'
+            self.manager.current = 'Answer'
+        if status['round'] == 'three':
+            self.settings.round = 'three'
+            self.manager.current = 'Answer'
+        if status['round'] == 'four':
+            self.settings.round = 'four'
+            self.manager.current = 'Answer'
+        if status['round'] == 'five':
+            self.settings.round = 'five'
+            self.manager.current = 'Answer'
+       
 
 if __name__ == "__main__":
     voteMaser().run()

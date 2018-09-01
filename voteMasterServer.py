@@ -91,6 +91,7 @@ def interrogatory(round, name):
         else:
             return question[i]
 
+
 votingResult = {'one_yes':0, 'one_no':0, 'two_yes':0, 'two_no':0, 'three_yes':0, 'three_no':0, 'four_yes':0, 'four_no':0, 'five_yes':0, 'five_no':0}
 
 
