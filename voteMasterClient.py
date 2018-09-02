@@ -215,25 +215,30 @@ class Result(Screen):
         resultJS = requests.get(self.settings.IP_Adress+'/result/'+self.settings.round)
         result = resultJS.json()
         self.ansYes.text = str(result[self.settings.round+'_yes'])
-        self.ansNo.text = str(result[self.settings.round+'_no'])  
-#change screen    
+        self.ansNo.text = str(result[self.settings.round+'_no'])
+        self.changeScreen()
+
+    def changeScreen(self, *args):
         statusJS = requests.get(self.settings.IP_Adress+'/status')
         status = statusJS.json()
-        if status['round'] == 'one':
-            self.settings.round = 'one'
-            self.manager.current = 'Answer'
-        if status['round'] == 'two':
-            self.settings.round = 'two'
-            self.manager.current = 'Answer'
-        if status['round'] == 'three':
-            self.settings.round = 'three'
-            self.manager.current = 'Answer'
-        if status['round'] == 'four':
-            self.settings.round = 'four'
-            self.manager.current = 'Answer'
-        if status['round'] == 'five':
-            self.settings.round = 'five'
-            self.manager.current = 'Answer'
+        if self.settings.round == status['round']:
+            pass
+        else:    
+            if status['round'] == 'one':
+                self.settings.round = 'one'
+                self.manager.current = 'Answer'
+            if status['round'] == 'two':
+                self.settings.round = 'two'
+                self.manager.current = 'Answer'
+            if status['round'] == 'three':
+                self.settings.round = 'three'
+                self.manager.current = 'Answer'
+            if status['round'] == 'four':
+                self.settings.round = 'four'
+                self.manager.current = 'Answer'
+            if status['round'] == 'five':
+                self.settings.round = 'five'
+                self.manager.current = 'Answer'
        
 
 if __name__ == "__main__":
