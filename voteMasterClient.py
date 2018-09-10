@@ -123,9 +123,18 @@ class MySettings(object):
     def __init__(self):
         self.clientCoutnry = 'test'
         self.rounds = ['zero', 'one', 'two', 'three', 'four', 'five', 'final']
+#        self.states = ['wait', 'answer']
         self.round = 'zero'
-        self.IP_Adress = 'http://localhost:8080' 
+        self.IP_Adress = 'http://localhost:8080'
 
+    def run(self):
+        Clock.schedule_interval(self.callback, 1)
+        pass
+
+    def callback(self): 
+        response = requests.get(self.IP_Adress+'/allSettings/' + self.round + '/' + self.clientCoutnry)
+        allSettings = response.json()
+     
 
 class Waiting(Screen):
     def __init__(self, **kwargs):
