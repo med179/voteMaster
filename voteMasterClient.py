@@ -120,6 +120,8 @@ class Admin(Screen):
 class Request():
     def __init__(self, **kwargs):
         self.settings = kwargs['settings']
+        self.changeWating = kwargs['changeWating']
+        self.changeResalt = kwargs['changeResalt']
         Clock.schedule_interval(self.callbackAllSettings, 1)
         Clock.schedule_interval(self.callbackAnswers, 1)
 
@@ -130,8 +132,7 @@ class Request():
             pass
         elif self.settings.round == 'zero':
             self.settings['question'] = allSettings['question']
-            changeWaiting = self.settings['changeWating']
-            changeWaiting()
+            self.changeWating()
         else: 
             self.settings.round = allSettings['round']
 
