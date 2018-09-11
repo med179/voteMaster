@@ -37,6 +37,7 @@ class Authorization(Screen):
     def __init__(self, **kwargs):
         super(Authorization, self).__init__(**kwargs)
         self.settings = kwargs['settings']
+        self.clientCallback = kwargs['clientCallback']
         authorizationLayout = BoxLayout(spacing = 10, size_hint = [1, .5])
         riba_kitBtn = Button(text='riba_kitBtn', on_press=self.riba_kitPress)
         tridevCarstvoBtn = Button(text='tridevCarstvoBtn', on_press=self.tridevCarstvoPress)
@@ -55,6 +56,7 @@ class Authorization(Screen):
     def login(self, name):
         self.manager.current = 'Waiting'
         self.settings.clientCoutnry = name
+        self.clientCallback
 
     def adminPress(self, *args):
         self.settings.clientCoutnry = 'admin'
