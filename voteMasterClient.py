@@ -56,7 +56,7 @@ class Authorization(Screen):
     def login(self, name):
         self.manager.current = 'Waiting'
         self.settings.clientCoutnry = name
-        self.clientCallback
+        self.clientCallback()
 
     def adminPress(self, *args):
         self.settings.clientCoutnry = 'admin'
