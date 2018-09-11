@@ -12,7 +12,7 @@ allRight = {'isAllRight':'allRight'}
 from bottle import route, run, template
 
 
-@route('/allSettings/<roud>/<name>')
+@route('/allSettings/<round>/<name>')
 def allSettings(round, name):
     returnToClient = {}
     if round == statusVote['round']:

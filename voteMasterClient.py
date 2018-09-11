@@ -23,7 +23,7 @@ class voteMaser(App):
         waiting = Waiting(name='Waiting', settings=settings)
         admin = Admin(name='Admin', settings=settings)
         result = Result(name='Result', settings=settings)
-        request = Request(settings=settings, changeWating=waiting.changeScreen, changeResalt=result.changeScreen)
+        request = Request(settings=settings, changeWating=waiting.changeScreen, changeResult=result.changeScreen)
         myScreenmanager.add_widget(authorization)
         myScreenmanager.add_widget(answer)
         myScreenmanager.add_widget(waiting)
@@ -121,7 +121,7 @@ class Request():
     def __init__(self, **kwargs):
         self.settings = kwargs['settings']
         self.changeWating = kwargs['changeWating']
-        self.changeResalt = kwargs['changeResalt']
+        self.changeResult = kwargs['changeResult']
         Clock.schedule_interval(self.callbackAllSettings, 1)
         Clock.schedule_interval(self.callbackAnswers, 1)
 
