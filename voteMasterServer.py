@@ -6,7 +6,7 @@
 
 #список стран пользователей
 countries = {'riba_kit':'', 'tridevCarstvo':'', 'lukomore':'', 'morskayaDergava':'', 'shamahan':''}
-question = ['Отказ от серебряно-золотого международного валютного стандарта', 'Использование территории Чудо-юдо рыбы Кита для размещения коалиционного флота', 'Приостановление членства в Организации Объединенных сказочных Наций Кощеева царства', 'Введение эмбарго на мертвую воду для Кощеева царства', 'Создание бесполетной зоны над Кощеевым царством']
+question = {'one':'Отказ от серебряно-золотого международного валютного стандарта', 'two':'Использование территории Чудо-юдо рыбы Кита для размещения коалиционного флота', 'three':'Приостановление членства в Организации Объединенных сказочных Наций Кощеева царства', 'four':'Введение эмбарго на мертвую воду для Кощеева царства', 'five':'Создание бесполетной зоны над Кощеевым царством'}
 statusVote = {'round':'zero'}
 allRight = {'isAllRight':'allRight'}
 from bottle import route, run, template
@@ -14,55 +14,52 @@ from bottle import route, run, template
 
 @route('/allSettings/<roud>/<name>')
 def allSettings(round, name):
-    global allRight
+    returnToClient = {}
     if round == statusVote['round']:
         return allRight
     else:
+        if round == 'zero':
+            if name == 'riba_kit':
+                returnToClient['question'] = question['one'] + 'ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ЗА'
+            if name == 'tridevCarstvo':
+                returnToClient['question'] = question['one'] + 'ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ПРОТИВ'
+            else:
+                returnToClient['question'] = question['one']
+            returnToClient['round'] = 'one'
         if round == 'one':
-            i = 0
-            if name == 'riba_kit':
-                return question[i]  + '<br /> <b>ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ЗА</b>'
             if name == 'tridevCarstvo':
-                return question[i]  + '<br /> <b>ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ПРОТИВ</b>'
+                returnToClient['question'] = question['two'] + ' ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ЗА'
+            if name == 'riba_kit':
+                returnToClient['question'] = question['two'] + ' ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ПРОТИВ'
             else:
-                return question[i]
+                returnToClient['question'] = question['two']
+            returnToClient['round'] = 'two'
         if round == 'two':
-            i = 1
-            if name == 'tridevCarstvo':
-                return question[i]  + '<br /> <b>ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ЗА</b>'
-            if name == 'riba_kit':
-                return question[i]  + '<br /> <b>ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ПРОТИВ</b>'
+            if name == 'lukomore':
+                returnToClient['question'] = question['three'] + ' ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ЗА'
+            if name == 'morskayaDergava':
+                returnToClient['question'] = question['three'] + ' ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ПРОТИВ'
             else:
-                return question[i]
+                returnToClient['question'] = question['three']
+            returnToClient['round'] = 'three'
         if round == 'three':
-            i = 2
+            if name == 'shamahan':
+                returnToClient['question'] = question['four'] + ' ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ЗА'
             if name == 'lukomore':
-                return question[i]  + '<br /> <b>ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ЗА</b>'
-            if name == 'morskayaDergava':
-                return question[i]  + '<br /> <b>ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ПРОТИВ</b>'
+                returnToClient['question'] = question['four'] + ' ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ПРОТИВ'
             else:
-                return question[i]
+                returnToClient['question'] = question['four']
+            returnToClient['round'] = 'four'
         if round == 'four':
-            i = 3
-            if name == 'shamahan':
-                return question[i]  + '<br /> <b>ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ЗА</b>'
-            if name == 'lukomore':
-                return question[i]  + '<br /> <b>ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ПРОТИВ</b>'
-            else:
-                return question[i]
-        if round == 'five':
-            i = 4
             if name == 'morskayaDergava':
-                return question[i]  + '<br /> <b>ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ЗА</b>'
+                returnToClient['question'] = question['five'] + ' ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ЗА'
             if name == 'shamahan':
-                return question[i]  + '<br /> <b>ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ПРОТИВ</b>'
+                returnToClient['question'] = question['five'] + ' ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ПРОТИВ'
             else:
-                return question[i]
-
+                returnToClient['question'] = question['five']
+            returnToClient['round'] = 'four'
+        return returnToClient
         
-
-
-
 
 @route('/changeStatusVote')
 def changeStatusVote():

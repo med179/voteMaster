@@ -23,6 +23,7 @@ class voteMaser(App):
         waiting = Waiting(name='Waiting', settings=settings)
         admin = Admin(name='Admin', settings=settings)
         result = Result(name='Result', settings=settings)
+        request = Request(settings=settings, changeWating=waiting.changeScreen, changeResalt=result.changeScreen)
         myScreenmanager.add_widget(authorization)
         myScreenmanager.add_widget(answer)
         myScreenmanager.add_widget(waiting)
@@ -116,57 +117,57 @@ class Admin(Screen):
         if playersStatus['shamahan'] == 'im ready':
             self.shamahanRdyLbl.background_color = [0, 1, 0, 1]        
 
+class Request():
+    def __init__(self, **kwargs):
+        self.settings = kwargs['settings']
+        Clock.schedule_interval(self.callbackAllSettings, 1)
+        Clock.schedule_interval(self.callbackAnswers, 1)
+
+    def callbackAllSettings(self, *args): 
+        response = requests.get(self.settings.IP_Adress+'/allSettings/' + self.settings.round + '/' + self.settings.clientCoutnry)
+        allSettings = response.json()
+        if allSettings['isAllRight'] == 'allRight':
+            pass
+        elif self.settings.round == 'zero':
+            self.settings['question'] = allSettings['question']
+            changeWaiting = self.settings['changeWating']
+            changeWaiting()
+        else: 
+            self.settings.round = allSettings['round']
+
+    def callbackAnswers(self, *args): 
+        response = requests.get(self.settings.IP_Adress+'/result/' + self.settings.round)
+        answers = response.json()
+        self.settings['answers'] = answers
 
 
-#тут нужно разобраться, что такое object
+
 class MySettings(object):
-    def __init__(self):
+    def __init__(self, *args):
         self.clientCoutnry = 'test'
         self.rounds = ['zero', 'one', 'two', 'three', 'four', 'five', 'final']
-#        self.states = ['wait', 'answer']
         self.round = 'zero'
         self.IP_Adress = 'http://localhost:8080'
+        self.question = ''
+        self.answers = {}
 
-    def run(self):
-        Clock.schedule_interval(self.callback, 1)
-        pass
-
-    def callback(self): 
-        response = requests.get(self.IP_Adress+'/allSettings/' + self.round + '/' + self.clientCoutnry)
-        allSettings = response.json()
-     
+    
 
 class Waiting(Screen):
     def __init__(self, **kwargs):
         super(Waiting, self).__init__(**kwargs)
         self.settings = kwargs['settings']
         waitLayout = BoxLayout()
-        waitBtn = Button(text='Приступрить к голосованию', on_press=self.callback)
+        waitBtn = Button(text='Приступрить к голосованию', on_press=self.imReady)
         waitLayout.add_widget(waitBtn)
         self.add_widget(waitLayout)
-        
-    def callback(self, *args):
-        Clock.schedule_interval(self.changeScreen, 1)
 
-    def changeScreen(self, *args):
+    def imReady(self, *args):
         requests.get(self.settings.IP_Adress+'/authorization/'+self.settings.clientCoutnry)
-        statusJS = requests.get(self.settings.IP_Adress+'/status')
-        status = statusJS.json()
-        if status['round'] == 'one':
-            self.settings.round = 'one'
-            self.manager.current = 'Answer'
-        if status['round'] == 'two':
-            self.settings.round = 'two'
-            self.manager.current = 'Answer'
-        if status['round'] == 'three':
-            self.settings.round = 'three'
-            self.manager.current = 'Answer'
-        if status['round'] == 'four':
-            self.settings.round = 'four'
-            self.manager.current = 'Answer'
-        if status['round'] == 'five':
-            self.settings.round = 'five'
-            self.manager.current = 'Answer'
+        
+    def changeScreen(self):    
+        self.manager.current = 'Answer'
+
 
 
 class Answer(Screen):
@@ -178,27 +179,22 @@ class Answer(Screen):
         btnLayout = BoxLayout(spacing = 20)
         btnYes = Button(text='YES', on_press = self.answerYes)
         btnNo = Button(text='NO', on_press = self.answerNo)
-        self.votingResultLbl = Label(text='Проголосовало ЗА: 0'+'    ***     Проголосовало ПРОТИВ: 0')
         btnLayout.add_widget(btnYes)
         btnLayout.add_widget(btnNo)
-        answerLayout.add_widget(self.votingResultLbl)
         answerLayout.add_widget(self.questionLbl)
         answerLayout.add_widget(btnLayout)
         self.add_widget(answerLayout)
         self.bind(on_pre_enter=self.updateLbl)
 
     def updateLbl(self, *args):
-        questionRequests = requests.get(self.settings.IP_Adress+'/interrogatory/'+self.settings.round+'/'+self.settings.clientCoutnry)
-        self.questionLbl.text = questionRequests.text
+        self.questionLbl.text = self.settings.question
 
     def answerYes(self, *args):
-            sendAnswer = requests.get(self.settings.IP_Adress+'/answer/'+self.settings.round+'/'+self.settings.clientCoutnry+'/yes')
-            self.votingResultLbl.text = sendAnswer.text
+            requests.get(self.settings.IP_Adress+'/answer/'+self.settings.round+'/'+self.settings.clientCoutnry+'/yes')
             self.manager.current = 'Result'
 
     def answerNo(self, *args):
-            sendAnswer = requests.get(self.settings.IP_Adress+'/answer/'+self.settings.round+'/'+self.settings.clientCoutnry+'/no')
-            self.votingResultLbl.text = sendAnswer.text
+            requests.get(self.settings.IP_Adress+'/answer/'+self.settings.round+'/'+self.settings.clientCoutnry+'/no')
             self.manager.current = 'Result'
 
 
@@ -207,13 +203,10 @@ class Result(Screen):
         super(Result, self).__init__(**kwargs)
         self.settings = kwargs['settings']
         result = BoxLayout()
-
         self.ansYes = Label(text='0')
         self.ansNo = Label(text='0')
-
         result.add_widget(self.ansYes)
         result.add_widget(self.ansNo)
-    
         self.add_widget(result)
         self.bind(on_pre_enter=self.callback)
 
@@ -221,33 +214,11 @@ class Result(Screen):
         Clock.schedule_interval(self.updateLbl, 1)
 
     def updateLbl(self, *args):
-        resultJS = requests.get(self.settings.IP_Adress+'/result/'+self.settings.round)
-        result = resultJS.json()
-        self.ansYes.text = str(result[self.settings.round+'_yes'])
-        self.ansNo.text = str(result[self.settings.round+'_no'])
-        self.changeScreen()
+        self.ansYes.text = str(self.settings.answers[self.settings.round+'_yes'])
+        self.ansNo.text = str(self.settings.answer[self.settings.round+'_no'])
 
     def changeScreen(self, *args):
-        statusJS = requests.get(self.settings.IP_Adress+'/status')
-        status = statusJS.json()
-        if self.settings.round == status['round']:
-            pass
-        else:    
-            if status['round'] == 'one':
-                self.settings.round = 'one'
-                self.manager.current = 'Answer'
-            if status['round'] == 'two':
-                self.settings.round = 'two'
-                self.manager.current = 'Answer'
-            if status['round'] == 'three':
-                self.settings.round = 'three'
-                self.manager.current = 'Answer'
-            if status['round'] == 'four':
-                self.settings.round = 'four'
-                self.manager.current = 'Answer'
-            if status['round'] == 'five':
-                self.settings.round = 'five'
-                self.manager.current = 'Answer'
+        self.manager.current = 'Answer'
        
 
 if __name__ == "__main__":
