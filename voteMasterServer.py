@@ -8,15 +8,15 @@
 countries = {'riba_kit':'', 'tridevCarstvo':'', 'lukomore':'', 'morskayaDergava':'', 'shamahan':''}
 question = {'one':'Отказ от серебряно-золотого международного валютного стандарта', 'two':'Использование территории Чудо-юдо рыбы Кита для размещения коалиционного флота', 'three':'Приостановление членства в Организации Объединенных сказочных Наций Кощеева царства', 'four':'Введение эмбарго на мертвую воду для Кощеева царства', 'five':'Создание бесполетной зоны над Кощеевым царством'}
 statusVote = {'round':'zero'}
-allRight = {'isAllRight':'allRight'}
 from bottle import route, run, template
 
 
 @route('/allSettings/<round>/<name>')
 def allSettings(round, name):
-    returnToClient = {}
+    returnToClient = {'isAllRight':'False'}
     if round == statusVote['round']:
-        return allRight
+        returnToClient['isAllRight'] = 'True'
+        return returnToClient
     else:
         if round == 'zero':
             if name == 'riba_kit':

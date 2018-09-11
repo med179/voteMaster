@@ -128,13 +128,13 @@ class Request():
     def callbackAllSettings(self, *args): 
         response = requests.get(self.settings.IP_Adress+'/allSettings/' + self.settings.round + '/' + self.settings.clientCoutnry)
         allSettings = response.json()
-        if allSettings['isAllRight'] == 'allRight':
-            pass
-        elif self.settings.round == 'zero':
-            self.settings.question = allSettings['question']
-            self.changeWating()
-        else: 
-            self.settings.round = allSettings['round']
+        print allSettings
+        if allSettings['isAllRight'] == 'False':
+            if self.settings.round == 'zero':
+                self.settings.question = allSettings['question']
+                self.changeWating()
+            else: 
+                self.settings.round = allSettings['round']
 
     def callbackAnswers(self, *args): 
         response = requests.get(self.settings.IP_Adress+'/result/' + self.settings.round)
