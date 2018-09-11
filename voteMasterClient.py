@@ -131,7 +131,7 @@ class Request():
         if allSettings['isAllRight'] == 'allRight':
             pass
         elif self.settings.round == 'zero':
-            self.settings['question'] = allSettings['question']
+            self.settings.question = allSettings['question']
             self.changeWating()
         else: 
             self.settings.round = allSettings['round']
@@ -139,7 +139,7 @@ class Request():
     def callbackAnswers(self, *args): 
         response = requests.get(self.settings.IP_Adress+'/result/' + self.settings.round)
         answers = response.json()
-        self.settings['answers'] = answers
+        self.settings.answers = answers
 
 
 
