@@ -13,17 +13,17 @@ from kivy.clock import Clock
 import requests
 
 
-
 class voteMaser(App):
     def build(self):
         myScreenmanager = ScreenManager()
         settings = MySettings()
-        authorization = Authorization(name='Authorization', settings=settings)
         answer = Answer(name='Answer', settings=settings)
         waiting = Waiting(name='Waiting', settings=settings)
         admin = Admin(name='Admin', settings=settings)
         result = Result(name='Result', settings=settings)
         request = Request(settings=settings, changeWating=waiting.changeScreen, changeResult=result.changeScreen)
+        authorization = Authorization(name='Authorization', settings=settings, clientCallback=request.clientCallback)
+
         myScreenmanager.add_widget(authorization)
         myScreenmanager.add_widget(answer)
         myScreenmanager.add_widget(waiting)
@@ -31,6 +31,7 @@ class voteMaser(App):
         myScreenmanager.add_widget(result)    
         myScreenmanager.current = 'Authorization'
         return myScreenmanager
+
 
 class Authorization(Screen):
     def __init__(self, **kwargs):
@@ -117,13 +118,18 @@ class Admin(Screen):
         if playersStatus['shamahan'] == 'im ready':
             self.shamahanRdyLbl.background_color = [0, 1, 0, 1]        
 
+
 class Request():
     def __init__(self, **kwargs):
         self.settings = kwargs['settings']
         self.changeWating = kwargs['changeWating']
         self.changeResult = kwargs['changeResult']
+
+        
+    def clientCallback(self, *args):
         Clock.schedule_interval(self.callbackAllSettings, 1)
         Clock.schedule_interval(self.callbackAnswers, 1)
+
 
     def callbackAllSettings(self, *args): 
         response = requests.get(self.settings.IP_Adress+'/allSettings/' + self.settings.round + '/' + self.settings.clientCoutnry)
@@ -131,16 +137,17 @@ class Request():
         print allSettings
         if allSettings['isAllRight'] == 'False':
             if self.settings.round == 'zero':
+                self.settings.round = 'one'
                 self.settings.question = allSettings['question']
                 self.changeWating()
             else: 
                 self.settings.round = allSettings['round']
+                self.changeResult()
 
     def callbackAnswers(self, *args): 
-        response = requests.get(self.settings.IP_Adress+'/result/' + self.settings.round)
+        response = requests.get(self.settings.IP_Adress+'/result/'+self.settings.round)
         answers = response.json()
         self.settings.answers = answers
-
 
 
 class MySettings(object):
@@ -151,8 +158,7 @@ class MySettings(object):
         self.IP_Adress = 'http://localhost:8080'
         self.question = ''
         self.answers = {}
-
-    
+  
 
 class Waiting(Screen):
     def __init__(self, **kwargs):
@@ -168,7 +174,6 @@ class Waiting(Screen):
         
     def changeScreen(self):    
         self.manager.current = 'Answer'
-
 
 
 class Answer(Screen):
