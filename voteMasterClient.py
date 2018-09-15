@@ -223,7 +223,7 @@ class Result(Screen):
 
     def updateLbl(self, *args):
         self.ansYes.text = str(self.settings.answers[self.settings.round+'_yes'])
-        self.ansNo.text = str(self.settings.answer[self.settings.round+'_no'])
+        self.ansNo.text = str(self.settings.answers[self.settings.round+'_no'])
 
     def changeScreen(self, *args):
         self.manager.current = 'Answer'
