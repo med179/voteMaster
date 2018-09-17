@@ -6,7 +6,9 @@
 
 #список стран пользователей
 countries = {'riba_kit':'', 'tridevCarstvo':'', 'lukomore':'', 'morskayaDergava':'', 'shamahan':''}
-question = {'one':'Отказ от серебряно-золотого международного валютного стандарта', 'two':'Использование территории Чудо-юдо рыбы Кита для размещения коалиционного флота', 'three':'Приостановление членства в Организации Объединенных сказочных Наций Кощеева царства', 'four':'Введение эмбарго на мертвую воду для Кощеева царства', 'five':'Создание бесполетной зоны над Кощеевым царством'}
+question = {'one':'ONE', 'two':'TWO', 'three':'THREE', 'four':'FOUR', 'five':'FIVE'}
+questionORIGINAL = {'one':'Отказ от серебряно-золотого международного валютного стандарта', 'two':'Использование территории Чудо-юдо рыбы Кита для размещения коалиционного флота', 'three':'Приостановление членства в Организации Объединенных сказочных Наций Кощеева царства', 'four':'Введение эмбарго на мертвую воду для Кощеева царства', 'five':'Создание бесполетной зоны над Кощеевым царством'}
+
 statusVote = {'round':'zero'}
 from bottle import route, run, template
 
@@ -20,41 +22,41 @@ def allSettings(round, name):
     else:
         if round == 'zero':
             if name == 'riba_kit':
-                returnToClient['question'] = question['one'] + 'ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ЗА'
+                returnToClient['question'] = question['one'] + ' YES'
             if name == 'tridevCarstvo':
-                returnToClient['question'] = question['one'] + 'ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ПРОТИВ'
+                returnToClient['question'] = question['one'] + ' NO'
             else:
                 returnToClient['question'] = question['one']
             returnToClient['round'] = 'one'
         if round == 'one':
             if name == 'tridevCarstvo':
-                returnToClient['question'] = question['two'] + ' ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ЗА'
+                returnToClient['question'] = question['two'] + ' YES'
             if name == 'riba_kit':
-                returnToClient['question'] = question['two'] + ' ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ПРОТИВ'
+                returnToClient['question'] = question['two'] +  ' NO'
             else:
                 returnToClient['question'] = question['two']
             returnToClient['round'] = 'two'
         if round == 'two':
             if name == 'lukomore':
-                returnToClient['question'] = question['three'] + ' ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ЗА'
+                returnToClient['question'] = question['three'] + ' YES'
             if name == 'morskayaDergava':
-                returnToClient['question'] = question['three'] + ' ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ПРОТИВ'
+                returnToClient['question'] = question['three'] + ' NO'
             else:
                 returnToClient['question'] = question['three']
             returnToClient['round'] = 'three'
         if round == 'three':
             if name == 'shamahan':
-                returnToClient['question'] = question['four'] + ' ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ЗА'
+                returnToClient['question'] = question['four'] + ' YES'
             if name == 'lukomore':
-                returnToClient['question'] = question['four'] + ' ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ПРОТИВ'
+                returnToClient['question'] = question['four'] + ' NO'
             else:
                 returnToClient['question'] = question['four']
             returnToClient['round'] = 'four'
         if round == 'four':
             if name == 'morskayaDergava':
-                returnToClient['question'] = question['five'] + ' ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ЗА'
+                returnToClient['question'] = question['five'] + ' YES'
             if name == 'shamahan':
-                returnToClient['question'] = question['five'] + ' ЗА ЭТОТ ВОПРОС БОЛЬШИНСТВО ДОЛЖНЫ ПРОГОЛОСОВАТЬ ПРОТИВ'
+                returnToClient['question'] = question['five'] + ' NO'
             else:
                 returnToClient['question'] = question['five']
             returnToClient['round'] = 'four'
@@ -68,10 +70,10 @@ def changeStatusVote():
         statusVote['round'] = 'final'             
     if statusVote['round'] == 'four':
         statusVote['round'] = 'five'
-    if statusVote['round'] == 'tree':
+    if statusVote['round'] == 'three':
         statusVote['round'] = 'four'
     if statusVote['round'] == 'two': 
-        statusVote['round'] = 'tree'
+        statusVote['round'] = 'three'
     if statusVote['round'] == 'one':
         statusVote['round'] = 'two'
     if statusVote['round'] == 'zero':
@@ -107,6 +109,7 @@ def answer(round, name, ans):
     global votingResult
     key = round + '_' + ans
     votingResult[key] += 1
+    print votingResult
     return 'Проголосовало ЗА: ' + str(votingResult[round + '_yes']) +'    ***     Проголосовало ПРОТИВ: '+str(votingResult[round + '_no'])
 
 @route('/result/<round>')

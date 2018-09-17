@@ -8,9 +8,12 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.clock import Clock
 import requests
+from time import sleep
+
 
 
 class voteMaser(App):
@@ -20,6 +23,7 @@ class voteMaser(App):
         answer = Answer(name='Answer', settings=settings)
         waiting = Waiting(name='Waiting', settings=settings)
         admin = Admin(name='Admin', settings=settings)
+        adminRoundScreen = AdminRoundScreen(name='AdminRoundScreen', settings=settings)
         result = Result(name='Result', settings=settings)
         request = Request(settings=settings, changeWating=waiting.changeScreen, changeResult=result.changeScreen)
         authorization = Authorization(name='Authorization', settings=settings, clientCallback=request.clientCallback)
@@ -28,6 +32,7 @@ class voteMaser(App):
         myScreenmanager.add_widget(answer)
         myScreenmanager.add_widget(waiting)
         myScreenmanager.add_widget(admin) 
+        myScreenmanager.add_widget(adminRoundScreen)
         myScreenmanager.add_widget(result)    
         myScreenmanager.current = 'Authorization'
         return myScreenmanager
@@ -102,6 +107,7 @@ class Admin(Screen):
 
     def changeStatusVote(self, *args):
         requests.get(self.settings.IP_Adress+'/changeStatusVote')
+        self.manager.current = 'AdminRoundScreen'
 
     def callback(self, *args):
         Clock.schedule_interval(self.statusPlayrs, 1)
@@ -121,6 +127,21 @@ class Admin(Screen):
             self.shamahanRdyLbl.background_color = [0, 1, 0, 1]        
 
 
+class AdminRoundScreen(Screen):
+    def __init__(self, **kwargs):
+        super(AdminRoundScreen, self).__init__(**kwargs)
+        self.settings = kwargs['settings']
+        mainScreen = BoxLayout()#(anchor_x='center', anchor_y='center')
+        roundLbl = Label(text='PAUSE')
+        mainScreen.add_widget(roundLbl)
+        self.add_widget(mainScreen)
+        self.bind(on_enter=self.changeScreen)
+
+
+    def changeScreen(self, *args):
+        sleep(3)
+        self.manager.current = 'Admin'
+
 class Request():
     def __init__(self, **kwargs):
         self.settings = kwargs['settings']
@@ -135,12 +156,13 @@ class Request():
 
     def callbackAllSettings(self, *args): 
         response = requests.get(self.settings.IP_Adress+'/allSettings/' + self.settings.round + '/' + self.settings.clientCoutnry)
+        print str(self.settings.IP_Adress+'/allSettings/' + self.settings.round + '/' + self.settings.clientCoutnry)
         allSettings = response.json()
         print allSettings
         if allSettings['isAllRight'] == 'False':
+            self.settings.question = allSettings['question']
             if self.settings.round == 'zero':
                 self.settings.round = 'one'
-                self.settings.question = allSettings['question']
                 self.changeWating()
             else: 
                 self.settings.round = allSettings['round']
@@ -149,6 +171,8 @@ class Request():
     def callbackAnswers(self, *args): 
         response = requests.get(self.settings.IP_Adress+'/result/'+self.settings.round)
         answers = response.json()
+        print ('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+        print answers
         self.settings.answers = answers
 
 
