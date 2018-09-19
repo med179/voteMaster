@@ -25,7 +25,8 @@ class voteMaser(App):
         admin = Admin(name='Admin', settings=settings)
         adminRoundScreen = AdminRoundScreen(name='AdminRoundScreen', settings=settings)
         result = Result(name='Result', settings=settings)
-        request = Request(settings=settings, changeWating=waiting.changeScreen, changeResult=result.changeScreen)
+        final = Final(name='Final', settings=settings)
+        request = Request(settings=settings, changeWating=waiting.changeScreen, changeResult=result.changeScreen, changeToFinalScreen = result.changeToFinalScreen)
         authorization = Authorization(name='Authorization', settings=settings, clientCallback=request.clientCallback)
 
         myScreenmanager.add_widget(authorization)
@@ -33,7 +34,8 @@ class voteMaser(App):
         myScreenmanager.add_widget(waiting)
         myScreenmanager.add_widget(admin) 
         myScreenmanager.add_widget(adminRoundScreen)
-        myScreenmanager.add_widget(result)    
+        myScreenmanager.add_widget(result)
+        myScreenmanager.add_widget(final)     
         myScreenmanager.current = 'Authorization'
         return myScreenmanager
 
@@ -137,7 +139,6 @@ class AdminRoundScreen(Screen):
         self.add_widget(mainScreen)
         self.bind(on_enter=self.changeScreen)
 
-
     def changeScreen(self, *args):
         sleep(3)
         self.manager.current = 'Admin'
@@ -147,12 +148,11 @@ class Request():
         self.settings = kwargs['settings']
         self.changeWating = kwargs['changeWating']
         self.changeResult = kwargs['changeResult']
-
+        self.changeToFinalScreen = kwargs['changeToFinalScreen']
         
     def clientCallback(self, *args):
         Clock.schedule_interval(self.callbackAllSettings, 1)
         Clock.schedule_interval(self.callbackAnswers, 1)
-
 
     def callbackAllSettings(self, *args): 
         response = requests.get(self.settings.IP_Adress+'/allSettings/' + self.settings.round + '/' + self.settings.clientCoutnry)
@@ -164,6 +164,9 @@ class Request():
             if self.settings.round == 'zero':
                 self.settings.round = 'one'
                 self.changeWating()
+            elif self.settings.round == 'five':
+                self.settings.round = 'final'
+                self.changeToFinalScreen()
             else: 
                 self.settings.round = allSettings['round']
                 self.changeResult()
@@ -251,7 +254,20 @@ class Result(Screen):
 
     def changeScreen(self, *args):
         self.manager.current = 'Answer'
-       
+    
+    def changeToFinalScreen(self, *args):
+        self.manager.current = 'Final'
+
+
+class Final(Screen):
+    def __init__(self, **kwargs):
+        super(Final, self).__init__(**kwargs)
+        self.settings = kwargs['settings']
+        finalScreen = BoxLayout()
+        finalLbl = Label(text='FINAL')
+        finalScreen.add_widget(finalLbl)
+        self.add_widget(finalScreen)   
+
 
 if __name__ == "__main__":
     voteMaser().run()

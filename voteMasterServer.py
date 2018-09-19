@@ -6,8 +6,8 @@
 
 #список стран пользователей
 countries = {'riba_kit':'', 'tridevCarstvo':'', 'lukomore':'', 'morskayaDergava':'', 'shamahan':''}
-question = {'one':'ONE', 'two':'TWO', 'three':'THREE', 'four':'FOUR', 'five':'FIVE'}
-questionORIGINAL = {'one':'Отказ от серебряно-золотого международного валютного стандарта', 'two':'Использование территории Чудо-юдо рыбы Кита для размещения коалиционного флота', 'three':'Приостановление членства в Организации Объединенных сказочных Наций Кощеева царства', 'four':'Введение эмбарго на мертвую воду для Кощеева царства', 'five':'Создание бесполетной зоны над Кощеевым царством'}
+#questionTEST = {'one':'ONE', 'two':'TWO', 'three':'THREE', 'four':'FOUR', 'five':'FIVE'}
+question = {'one':'Отказ от серебряно-золотого международного валютного стандарта', 'two':'Использование территории Чудо-юдо рыбы Кита для размещения коалиционного флота', 'three':'Приостановление членства в Организации Объединенных сказочных Наций Кощеева царства', 'four':'Введение эмбарго на мертвую воду для Кощеева царства', 'five':'Создание бесполетной зоны над Кощеевым царством'}
 
 statusVote = {'round':'zero'}
 from bottle import route, run, template
@@ -19,11 +19,14 @@ def allSettings(round, name):
     if round == statusVote['round']:
         returnToClient['isAllRight'] = 'True'
         return returnToClient
+    elif round == 'five':
+        returnToClient = votingResult
+        returnToClient['isAllRight'] = 'True'
     else:
         if round == 'zero':
             if name == 'riba_kit':
                 returnToClient['question'] = question['one'] + ' YES'
-            if name == 'tridevCarstvo':
+            elif name == 'tridevCarstvo':
                 returnToClient['question'] = question['one'] + ' NO'
             else:
                 returnToClient['question'] = question['one']
@@ -31,7 +34,7 @@ def allSettings(round, name):
         if round == 'one':
             if name == 'tridevCarstvo':
                 returnToClient['question'] = question['two'] + ' YES'
-            if name == 'riba_kit':
+            elif name == 'riba_kit':
                 returnToClient['question'] = question['two'] +  ' NO'
             else:
                 returnToClient['question'] = question['two']
@@ -39,7 +42,7 @@ def allSettings(round, name):
         if round == 'two':
             if name == 'lukomore':
                 returnToClient['question'] = question['three'] + ' YES'
-            if name == 'morskayaDergava':
+            elif name == 'morskayaDergava':
                 returnToClient['question'] = question['three'] + ' NO'
             else:
                 returnToClient['question'] = question['three']
@@ -47,7 +50,7 @@ def allSettings(round, name):
         if round == 'three':
             if name == 'shamahan':
                 returnToClient['question'] = question['four'] + ' YES'
-            if name == 'lukomore':
+            elif name == 'lukomore':
                 returnToClient['question'] = question['four'] + ' NO'
             else:
                 returnToClient['question'] = question['four']
@@ -55,11 +58,11 @@ def allSettings(round, name):
         if round == 'four':
             if name == 'morskayaDergava':
                 returnToClient['question'] = question['five'] + ' YES'
-            if name == 'shamahan':
+            elif name == 'shamahan':
                 returnToClient['question'] = question['five'] + ' NO'
             else:
                 returnToClient['question'] = question['five']
-            returnToClient['round'] = 'four'
+            returnToClient['round'] = 'five'
         return returnToClient
         
 
