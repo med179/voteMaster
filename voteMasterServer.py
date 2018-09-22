@@ -8,9 +8,14 @@
 countries = {'riba_kit':'', 'tridevCarstvo':'', 'lukomore':'', 'morskayaDergava':'', 'shamahan':''}
 #questionTEST = {'one':'ONE', 'two':'TWO', 'three':'THREE', 'four':'FOUR', 'five':'FIVE'}
 question = {'one':'Отказ от серебряно-золотого международного валютного стандарта', 'two':'Использование территории Чудо-юдо рыбы Кита для размещения коалиционного флота', 'three':'Приостановление членства в Организации Объединенных сказочных Наций Кощеева царства', 'four':'Введение эмбарго на мертвую воду для Кощеева царства', 'five':'Создание бесполетной зоны над Кощеевым царством'}
+votingResult = {'one_yes':0, 'one_no':0, 'two_yes':0, 'two_no':0, 'three_yes':0, 'three_no':0, 'four_yes':0, 'four_no':0, 'five_yes':0, 'five_no':0}
 
 statusVote = {'round':'zero'}
 from bottle import route, run, template
+
+@route('/test')
+def test():
+    return 'True'
 
 
 @route('/allSettings/<round>/<name>')
@@ -99,13 +104,6 @@ def authorization(name):
     else:
         countries[name] = 'im ready'
     
-
-#@route('/interrogatory/<round>/<name>')
-#def interrogatory(round, name):
-
-
-votingResult = {'one_yes':0, 'one_no':0, 'two_yes':0, 'two_no':0, 'three_yes':0, 'three_no':0, 'four_yes':0, 'four_no':0, 'five_yes':0, 'five_no':0}
-
 
 @route('/answer/<round>/<name>/<ans>')
 def answer(round, name, ans):

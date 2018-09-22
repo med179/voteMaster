@@ -11,6 +11,8 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.clock import Clock
+from kivy.storage.dictstore import DictStore
+from kivy.uix.textinput import TextInput
 import requests
 from time import sleep
 
@@ -28,16 +30,76 @@ class voteMaser(App):
         final = Final(name='Final', settings=settings)
         request = Request(settings=settings, changeWating=waiting.changeScreen, changeResult=result.changeScreen, changeToFinalScreen = result.changeToFinalScreen)
         authorization = Authorization(name='Authorization', settings=settings, clientCallback=request.clientCallback)
-
+        enterNewIP = EnterNewIP(name='EnterNewIP', settings=settings)
+        testNewIP = TestNewIP(name='TestNewIP', settings=settings)
         myScreenmanager.add_widget(authorization)
         myScreenmanager.add_widget(answer)
         myScreenmanager.add_widget(waiting)
         myScreenmanager.add_widget(admin) 
         myScreenmanager.add_widget(adminRoundScreen)
         myScreenmanager.add_widget(result)
-        myScreenmanager.add_widget(final)     
-        myScreenmanager.current = 'Authorization'
+        myScreenmanager.add_widget(final)
+        myScreenmanager.add_widget(enterNewIP)
+        myScreenmanager.add_widget(testNewIP)
+
+        try:
+            testIP = requests.get(settings.IP_Adress + '/test')
+        except:
+            testIP = 'False'
+        if testIP == 'False':
+            myScreenmanager.current = 'EnterNewIP'
+        else:
+            myScreenmanager.current = 'Authorization'
+        
         return myScreenmanager
+
+
+class EnterNewIP(Screen):
+    def __init__(self, **kwargs):
+        super(EnterNewIP, self).__init__(**kwargs)
+        self.settings = kwargs['settings']
+        self.newIP = ''
+        body = BoxLayout(orientation = 'vertical')
+        inputIP = Label(text='Server not found.\nEnter new IP, please')
+        self.textInput = TextInput(multiline = False)
+        self.textInput.bind(text=self.on_text)
+        sendNewIPBtn = Button(on_press=self.sendNewIP)
+        body.add_widget(inputIP)
+        body.add_widget(self.textInput)
+        body.add_widget(sendNewIPBtn)
+        self.add_widget(body)
+
+    def on_text(self, instance, value):
+        print('The widget', instance, 'have:', value)
+        self.newIP = value
+
+    def sendNewIP(self, *args):
+        self.settings.IP_Adress = self.newIP
+        self.manager.current = 'TestNewIP'
+
+
+class TestNewIP(Screen):
+    def __init__(self, **kwargs):
+        super(TestNewIP, self).__init__(**kwargs)
+        self.settings = kwargs['settings']
+        self.statusLbl = Label(text='Connection')
+        self.add_widget(self.statusLbl)
+        self.bind(on_enter=self.testNewIP)
+
+    def testNewIP(self, *args):
+        sleep(1)
+        try:
+            testIP = requests.get(self.settings.IP_Adress + '/test')
+        except:
+            testIP = 'False'
+        if testIP == 'False':
+            self.statusLbl.text = "It isn't working, try again."
+            sleep(2)
+            self.manager.current = 'EnterNewIP'
+        else:
+            self.statusLbl.text = "It's working, thank you!!!"
+            sleep(2)
+            self.manager.current = 'Authorization'
 
 
 class Authorization(Screen):
@@ -184,7 +246,8 @@ class MySettings(object):
         self.clientCoutnry = 'test'
         self.rounds = ['zero', 'one', 'two', 'three', 'four', 'five', 'final']
         self.round = 'zero'
-        self.IP_Adress = 'http://localhost:8080'
+        self.IP_Adress = 'hthost:8080'
+#        self.IP_Adress = 'http://localhost:8080'
         self.question = ''
         self.answers = {}
   
