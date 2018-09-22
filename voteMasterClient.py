@@ -246,8 +246,8 @@ class MySettings(object):
         self.clientCoutnry = 'test'
         self.rounds = ['zero', 'one', 'two', 'three', 'four', 'five', 'final']
         self.round = 'zero'
-        self.IP_Adress = 'hthost:8080'
-#        self.IP_Adress = 'http://localhost:8080'
+#        self.IP_Adress = 'hthost:8080'
+        self.IP_Adress = 'http://localhost:8080'
         self.question = ''
         self.answers = {}
   
