@@ -219,7 +219,6 @@ class Admin(Screen):
         isPlayersReady = requests.get(self.settings.IP_Adress+'/authorization/admin')
         playersStatus = isPlayersReady.json()
         if playersStatus['riba_kit'] == 'im ready' or playersStatus['riba_kit'] == 'answerGiven':
-            print ('111111111111111111111111111111111111111111111111')
             self.riba_kitRdyLbl.background_color = [0, 1, 0, 1]
         if playersStatus['tridevCarstvo'] == 'im ready' or playersStatus['tridevCarstvo'] == 'answerGiven':
             self.tridevCarstvoRdyLbl.background_color = [0, 1, 0, 1]
@@ -245,6 +244,7 @@ class AdminRoundScreen(Screen):
         sleep(3)
         self.manager.current = 'Admin'
 
+
 class Request():
     def __init__(self, **kwargs):
         self.settings = kwargs['settings']
@@ -258,7 +258,6 @@ class Request():
 
     def callbackAllSettings(self, *args): 
         response = requests.get(self.settings.IP_Adress+'/allSettings/' + self.settings.round + '/' + self.settings.clientCoutnry)
-        print str(self.settings.IP_Adress+'/allSettings/' + self.settings.round + '/' + self.settings.clientCoutnry)
         allSettings = response.json()
         print allSettings
         if allSettings['isAllRight'] == 'False':
@@ -286,7 +285,7 @@ class MySettings(object):
         self.store = DictStore('user.dat')
         self.clientCoutnry = 'test'
         self.round = 'zero'
-#        self.IP_Adress = 'hthost:8080'
+    #    self.IP_Adress = 'hthost:8080'
         self.IP_Adress = 'http://localhost:8080'
         self.question = ''
         self.answers = {}
@@ -294,8 +293,6 @@ class MySettings(object):
             self.clientCoutnry = str(self.store.get('clientCoutnry')['data'])
             print('Ist work', self.clientCoutnry)
 
-
-  
 
 class Waiting(Screen):
     def __init__(self, **kwargs):

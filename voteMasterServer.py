@@ -26,6 +26,7 @@ def allSettings(round, name):
     elif round == 'five':
         returnToClient = votingResult
         returnToClient['isAllRight'] = 'True'
+        return returnToClient
     else:
         if round == 'zero':
             if name == 'riba_kit':
