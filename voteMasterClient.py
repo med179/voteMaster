@@ -41,7 +41,7 @@ class voteMaser(App):
         myScreenmanager.add_widget(final)
         myScreenmanager.add_widget(enterNewIP)
         myScreenmanager.add_widget(testNewIP)
-
+        #проверка, досупен ли сервер
         try:
             testIP = requests.get(settings.IP_Adress + '/test')
         except:
@@ -49,7 +49,37 @@ class voteMaser(App):
         if testIP == 'False':
             myScreenmanager.current = 'EnterNewIP'
         else:
-            myScreenmanager.current = 'Authorization'
+        #если доступен, проверяем, логинился ли уже этот игрок/получаем статусы всех игроков
+            if settings.store.exists('clientCoutnry'):
+            #открываем нужный экран    
+                getData = requests.get(settings.IP_Adress+'/authorization/admin')
+                statusPlayers = getData.json()
+                if statusPlayers[settings.clientCoutnry] == 'answerIsNotGiven':
+                    getRound = requests.get(settings.IP_Adress+'/status')
+                    rounsJson = getRound.json()
+                    if rounsJson['round'] == 'one':
+                        settings.round = 'zero'
+                    if rounsJson['round'] == 'two':
+                        settings.round = 'one'
+                    if rounsJson['round'] == 'three':              
+                        settings.round = 'two'          
+                    if rounsJson['round'] == 'four':
+                        settings.round = 'three'
+                    if rounsJson['round'] == 'five':
+                        settings.round = 'four'         
+                    request.clientCallback()
+                    myScreenmanager.current = 'Answer'
+                if statusPlayers[settings.clientCoutnry] == 'answerGiven':
+                    getRound = requests.get(settings.IP_Adress+'/status')
+                    rounsJson = getRound.json()
+                    settings.round = rounsJson['round']
+                    request.clientCallback()
+                    myScreenmanager.current = 'Result'
+                if statusPlayers[settings.clientCoutnry] == 'final':
+                    request.clientCallback()
+                    myScreenmanager.current = 'Final'
+            else:
+                myScreenmanager.current = 'Authorization'
         
         return myScreenmanager
 
@@ -125,6 +155,7 @@ class Authorization(Screen):
     def login(self, name):
         self.manager.current = 'Waiting'
         self.settings.clientCoutnry = name
+        self.settings.store.put('clientCoutnry', data=name)
         self.clientCallback()
 
     def adminPress(self, *args):
@@ -163,31 +194,40 @@ class Admin(Screen):
         readyBtns.add_widget(self.lukomoreRdyLbl)
         readyBtns.add_widget(self.morskayaDergavaRdyLbl)
         readyBtns.add_widget(self.shamahanRdyLbl)
-        startBtn = Button(text='Start voting (get status)',  size_hint=[.3, .3], on_press=self.changeStatusVote, background_color=[1, 0, 0, 1])
+        startBtn = Button(text='Start voting (get status)', size_hint=[.3, .3], on_press=self.changeStatusVote, background_color=[1, 0, 0, 1])
         adminLayout.add_widget(readyBtns)
         adminLayout.add_widget(startBtn)
         self.add_widget(adminLayout)
         self.bind(on_pre_enter=self.callback)
+        self.bind(on_pre_enter=self.cleanStatusPlayers)
+    
+    def cleanStatusPlayers(self, *args):
+        self.riba_kitRdyLbl.background_color = [1, 0, 0, 1]
+        self.tridevCarstvoRdyLbl.background_color = [1, 0, 0, 1]
+        self.lukomoreRdyLbl.background_color = [1, 0, 0, 1]
+        self.morskayaDergavaRdyLbl.background_color = [1, 0, 0, 1]
+        self.shamahanRdyLbl.background_color = [1, 0, 0, 1]        
 
     def changeStatusVote(self, *args):
         requests.get(self.settings.IP_Adress+'/changeStatusVote')
         self.manager.current = 'AdminRoundScreen'
 
     def callback(self, *args):
-        Clock.schedule_interval(self.statusPlayrs, 1)
+        Clock.schedule_interval(self.getStatusPlayrs, 1)
 
-    def statusPlayrs(self, *args):
+    def getStatusPlayrs(self, *args):
         isPlayersReady = requests.get(self.settings.IP_Adress+'/authorization/admin')
         playersStatus = isPlayersReady.json()
-        if playersStatus['riba_kit'] == 'im ready':
+        if playersStatus['riba_kit'] == 'im ready' or playersStatus['riba_kit'] == 'answerGiven':
+            print ('111111111111111111111111111111111111111111111111')
             self.riba_kitRdyLbl.background_color = [0, 1, 0, 1]
-        if playersStatus['tridevCarstvo'] == 'im ready':
+        if playersStatus['tridevCarstvo'] == 'im ready' or playersStatus['tridevCarstvo'] == 'answerGiven':
             self.tridevCarstvoRdyLbl.background_color = [0, 1, 0, 1]
-        if playersStatus['lukomore'] == 'im ready':
+        if playersStatus['lukomore'] == 'im ready' or playersStatus['lukomore'] == 'answerGiven':
             self.lukomoreRdyLbl.background_color = [0, 1, 0, 1]
-        if playersStatus['morskayaDergava'] == 'im ready':
+        if playersStatus['morskayaDergava'] == 'im ready' or playersStatus['morskayaDergava'] == 'answerGiven':
             self.morskayaDergavaRdyLbl.background_color = [0, 1, 0, 1]
-        if playersStatus['shamahan'] == 'im ready':
+        if playersStatus['shamahan'] == 'im ready' or playersStatus['shamahan'] == 'answerGiven':
             self.shamahanRdyLbl.background_color = [0, 1, 0, 1]        
 
 
@@ -195,7 +235,7 @@ class AdminRoundScreen(Screen):
     def __init__(self, **kwargs):
         super(AdminRoundScreen, self).__init__(**kwargs)
         self.settings = kwargs['settings']
-        mainScreen = BoxLayout()#(anchor_x='center', anchor_y='center')
+        mainScreen = BoxLayout()
         roundLbl = Label(text='PAUSE')
         mainScreen.add_widget(roundLbl)
         self.add_widget(mainScreen)
@@ -243,13 +283,18 @@ class Request():
 
 class MySettings(object):
     def __init__(self, *args):
+        self.store = DictStore('user.dat')
         self.clientCoutnry = 'test'
-        self.rounds = ['zero', 'one', 'two', 'three', 'four', 'five', 'final']
         self.round = 'zero'
 #        self.IP_Adress = 'hthost:8080'
         self.IP_Adress = 'http://localhost:8080'
         self.question = ''
         self.answers = {}
+        if self.store.exists('clientCoutnry'):
+            self.clientCoutnry = str(self.store.get('clientCoutnry')['data'])
+            print('Ist work', self.clientCoutnry)
+
+
   
 
 class Waiting(Screen):

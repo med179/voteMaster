@@ -5,8 +5,7 @@
 #voteMaser - server part
 
 #список стран пользователей
-countries = {'riba_kit':'', 'tridevCarstvo':'', 'lukomore':'', 'morskayaDergava':'', 'shamahan':''}
-#questionTEST = {'one':'ONE', 'two':'TWO', 'three':'THREE', 'four':'FOUR', 'five':'FIVE'}
+statusPlayers = {'riba_kit':'', 'tridevCarstvo':'', 'lukomore':'', 'morskayaDergava':'', 'shamahan':''}
 question = {'one':'Отказ от серебряно-золотого международного валютного стандарта', 'two':'Использование территории Чудо-юдо рыбы Кита для размещения коалиционного флота', 'three':'Приостановление членства в Организации Объединенных сказочных Наций Кощеева царства', 'four':'Введение эмбарго на мертвую воду для Кощеева царства', 'five':'Создание бесполетной зоны над Кощеевым царством'}
 votingResult = {'one_yes':0, 'one_no':0, 'two_yes':0, 'two_no':0, 'three_yes':0, 'three_no':0, 'four_yes':0, 'four_no':0, 'five_yes':0, 'five_no':0}
 
@@ -74,18 +73,31 @@ def allSettings(round, name):
 @route('/changeStatusVote')
 def changeStatusVote():
     global statusVote
+    global statusPlayers
     if statusVote['round'] == 'five':
-        statusVote['round'] = 'final'             
+        statusVote['round'] = 'final'   
+        for key in statusPlayers:
+            statusPlayers[key] = 'final'
     if statusVote['round'] == 'four':
         statusVote['round'] = 'five'
+        for key in statusPlayers:
+            statusPlayers[key] = 'answerIsNotGiven'    
     if statusVote['round'] == 'three':
         statusVote['round'] = 'four'
+        for key in statusPlayers:
+            statusPlayers[key] = 'answerIsNotGiven'
     if statusVote['round'] == 'two': 
         statusVote['round'] = 'three'
+        for key in statusPlayers:
+            statusPlayers[key] = 'answerIsNotGiven'    
     if statusVote['round'] == 'one':
         statusVote['round'] = 'two'
+        for key in statusPlayers:
+            statusPlayers[key] = 'answerIsNotGiven'    
     if statusVote['round'] == 'zero':
         statusVote['round'] = 'one'
+        for key in statusPlayers:
+            statusPlayers[key] = 'answerIsNotGiven'    
 
     print('***************************************')
     print(statusVote)
@@ -100,18 +112,20 @@ def status():
 @route('/authorization/<name>')
 def authorization(name):
     if name == 'admin':
-        return countries
+        return statusPlayers
     else:
-        countries[name] = 'im ready'
+        statusPlayers[name] = 'im ready'
     
 
 @route('/answer/<round>/<name>/<ans>')
 def answer(round, name, ans):
     global votingResult
+    global statusPlayers
     key = round + '_' + ans
     votingResult[key] += 1
+    statusPlayers[name] = 'answerGiven'
     print votingResult
-    return 'Проголосовало ЗА: ' + str(votingResult[round + '_yes']) +'    ***     Проголосовало ПРОТИВ: '+str(votingResult[round + '_no'])
+    return 'You voted'
 
 @route('/result/<round>')
 def result(round):
