@@ -28,7 +28,7 @@ class voteMaser(App):
         adminRoundScreen = AdminRoundScreen(name='AdminRoundScreen', settings=settings)
         result = Result(name='Result', settings=settings)
         final = Final(name='Final', settings=settings)
-        request = Request(settings=settings, changeWating=waiting.changeScreen, changeResult=result.changeScreen, changeToFinalScreen = result.changeToFinalScreen)
+        request = Request(settings=settings, myScreenmanager=myScreenmanager, updateAnswerLbl=answer.updateLbl, updateResultLbl=result.updateLbl)
         authorization = Authorization(name='Authorization', settings=settings, clientCallback=request.clientCallback)
         enterNewIP = EnterNewIP(name='EnterNewIP', settings=settings)
         testNewIP = TestNewIP(name='TestNewIP', settings=settings)
@@ -50,34 +50,35 @@ class voteMaser(App):
             myScreenmanager.current = 'EnterNewIP'
         else:
         #если доступен, проверяем, логинился ли уже этот игрок/получаем статусы всех игроков
-            if settings.store.exists('clientCoutnry'):
-            #открываем нужный экран    
-                getData = requests.get(settings.IP_Adress+'/authorization/admin')
-                statusPlayers = getData.json()
-                if statusPlayers[settings.clientCoutnry] == 'answerIsNotGiven':
-                    getRound = requests.get(settings.IP_Adress+'/status')
-                    rounsJson = getRound.json()
-                    if rounsJson['round'] == 'one':
-                        settings.round = 'zero'
-                    if rounsJson['round'] == 'two':
-                        settings.round = 'one'
-                    if rounsJson['round'] == 'three':              
-                        settings.round = 'two'          
-                    if rounsJson['round'] == 'four':
-                        settings.round = 'three'
-                    if rounsJson['round'] == 'five':
-                        settings.round = 'four'         
-                    request.clientCallback()
-                    myScreenmanager.current = 'Answer'
-                if statusPlayers[settings.clientCoutnry] == 'answerGiven':
-                    getRound = requests.get(settings.IP_Adress+'/status')
-                    rounsJson = getRound.json()
-                    settings.round = rounsJson['round']
-                    request.clientCallback()
-                    myScreenmanager.current = 'Result'
-                if statusPlayers[settings.clientCoutnry] == 'final':
-                    request.clientCallback()
-                    myScreenmanager.current = 'Final'
+            if settings.store.exists('gameStatus'):
+                if settings.store.get('gameStatus')['data'] == 'gameIsOn':
+                #открываем нужный экран    
+                    getData = requests.get(settings.IP_Adress+'/authorization/admin')
+                    statusPlayers = getData.json()
+                    if statusPlayers[settings.clientCoutnry] == 'answerIsNotGiven':
+                        getRound = requests.get(settings.IP_Adress+'/status')
+                        rounsJson = getRound.json()
+                        if rounsJson['round'] == 'one':
+                            settings.round = 'zero'
+                        if rounsJson['round'] == 'two':
+                            settings.round = 'one'
+                        if rounsJson['round'] == 'three':              
+                            settings.round = 'two'          
+                        if rounsJson['round'] == 'four':
+                            settings.round = 'three'
+                        if rounsJson['round'] == 'five':
+                            settings.round = 'four'         
+                        request.clientCallback()
+                        myScreenmanager.current = 'Answer'
+                    if statusPlayers[settings.clientCoutnry] == 'answerGiven':
+                        getRound = requests.get(settings.IP_Adress+'/status')
+                        rounsJson = getRound.json()
+                        settings.round = rounsJson['round']
+                        request.clientCallback()
+                        myScreenmanager.current = 'Result'
+                    if statusPlayers[settings.clientCoutnry] == 'final':
+                        request.clientCallback()
+                        myScreenmanager.current = 'Final'
             else:
                 myScreenmanager.current = 'Authorization'
         
@@ -105,6 +106,7 @@ class EnterNewIP(Screen):
 
     def sendNewIP(self, *args):
         self.settings.IP_Adress = self.newIP
+        self.settings.store.put('IP', data=self.newIP)
         self.manager.current = 'TestNewIP'
 
 
@@ -156,6 +158,7 @@ class Authorization(Screen):
         self.manager.current = 'Waiting'
         self.settings.clientCoutnry = name
         self.settings.store.put('clientCoutnry', data=name)
+        self.settings.store.put('gameStatus', data='gameIsOn')
         self.clientCallback()
 
     def adminPress(self, *args):
@@ -248,13 +251,13 @@ class AdminRoundScreen(Screen):
 class Request():
     def __init__(self, **kwargs):
         self.settings = kwargs['settings']
-        self.changeWating = kwargs['changeWating']
-        self.changeResult = kwargs['changeResult']
-        self.changeToFinalScreen = kwargs['changeToFinalScreen']
+        self.myScreenmanager = kwargs['myScreenmanager']
+        self.updateResultLbl = kwargs['updateResultLbl']
+        self.updateAnswerLbl = kwargs['updateAnswerLbl']
         
     def clientCallback(self, *args):
         Clock.schedule_interval(self.callbackAllSettings, 1)
-        Clock.schedule_interval(self.callbackAnswers, 1)
+        Clock.schedule_interval(self.callbackVotingResult, 1)
 
     def callbackAllSettings(self, *args): 
         response = requests.get(self.settings.IP_Adress+'/allSettings/' + self.settings.round + '/' + self.settings.clientCoutnry)
@@ -262,22 +265,18 @@ class Request():
         print allSettings
         if allSettings['isAllRight'] == 'False':
             self.settings.question = allSettings['question']
-            if self.settings.round == 'zero':
-                self.settings.round = 'one'
-                self.changeWating()
-            elif self.settings.round == 'five':
-                self.settings.round = 'final'
-                self.changeToFinalScreen()
-            else: 
-                self.settings.round = allSettings['round']
-                self.changeResult()
+            self.updateAnswerLbl()
+            self.settings.round = allSettings['round']
+            if self.settings.round == 'final':
+                self.myScreenmanager.current = 'Final'          
+            else:
+                self.myScreenmanager.current = 'Answer'
 
-    def callbackAnswers(self, *args): 
+    def callbackVotingResult(self, *args): 
         response = requests.get(self.settings.IP_Adress+'/result/'+self.settings.round)
-        answers = response.json()
-        print ('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-        print answers
-        self.settings.answers = answers
+        votingResult = response.json()
+        self.settings.votingResult = votingResult
+        self.updateResultLbl()
 
 
 class MySettings(object):
@@ -288,10 +287,11 @@ class MySettings(object):
     #    self.IP_Adress = 'hthost:8080'
         self.IP_Adress = 'http://localhost:8080'
         self.question = ''
-        self.answers = {}
+        self.votingResult = {'zero_yes':0, 'zero_no':0}
         if self.store.exists('clientCoutnry'):
-            self.clientCoutnry = str(self.store.get('clientCoutnry')['data'])
-            print('Ist work', self.clientCoutnry)
+            self.clientCoutnry = self.store.get('clientCoutnry')['data']
+        if self.store.exists('IP'):
+            self.IP_Adress = self.store.get('IP')['data']
 
 
 class Waiting(Screen):
@@ -305,9 +305,6 @@ class Waiting(Screen):
 
     def imReady(self, *args):
         requests.get(self.settings.IP_Adress+'/authorization/'+self.settings.clientCoutnry)
-        
-    def changeScreen(self):    
-        self.manager.current = 'Answer'
 
 
 class Answer(Screen):
@@ -324,7 +321,6 @@ class Answer(Screen):
         answerLayout.add_widget(self.questionLbl)
         answerLayout.add_widget(btnLayout)
         self.add_widget(answerLayout)
-        self.bind(on_pre_enter=self.updateLbl)
 
     def updateLbl(self, *args):
         self.questionLbl.text = self.settings.question
@@ -348,21 +344,12 @@ class Result(Screen):
         result.add_widget(self.ansYes)
         result.add_widget(self.ansNo)
         self.add_widget(result)
-        self.bind(on_pre_enter=self.callback)
-
-    def callback(self, *args):
-        Clock.schedule_interval(self.updateLbl, 1)
 
     def updateLbl(self, *args):
-        self.ansYes.text = str(self.settings.answers[self.settings.round+'_yes'])
-        self.ansNo.text = str(self.settings.answers[self.settings.round+'_no'])
-
-    def changeScreen(self, *args):
-        self.manager.current = 'Answer'
+        print (self.settings.votingResult)
+        self.ansYes.text = str(self.settings.votingResult[self.settings.round+'_yes'])
+        self.ansNo.text = str(self.settings.votingResult[self.settings.round+'_no'])
     
-    def changeToFinalScreen(self, *args):
-        self.manager.current = 'Final'
-
 
 class Final(Screen):
     def __init__(self, **kwargs):
