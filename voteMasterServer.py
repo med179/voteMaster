@@ -1,25 +1,29 @@
 #!python
 # -*- coding: utf-8 -*-
 
-
 #voteMaser - server part
+from bottle import route, run, template
 
 #список стран пользователей
 statusPlayers = {'riba_kit':'', 'tridevCarstvo':'', 'lukomore':'', 'morskayaDergava':'', 'shamahan':''}
 question = {'one':'Отказ от серебряно-золотого международного валютного стандарта', 'two':'Использование территории Чудо-юдо рыбы Кита для размещения коалиционного флота', 'three':'Приостановление членства в Организации Объединенных сказочных Наций Кощеева царства', 'four':'Введение эмбарго на мертвую воду для Кощеева царства', 'five':'Создание бесполетной зоны над Кощеевым царством'}
 votingResult = {'zero_yes':0, 'zero_no':0, 'one_yes':0, 'one_no':0, 'two_yes':0, 'two_no':0, 'three_yes':0, 'three_no':0, 'four_yes':0, 'four_no':0, 'five_yes':0, 'five_no':0}
-
 statusVote = {'round':'zero'}
-from bottle import route, run, template
+whoHasAlreadyRestarted = {'riba_kit':'alreadyRestarted', 'tridevCarstvo':'alreadyRestarted', 'lukomore':'alreadyRestarted', 'morskayaDergava':'alreadyRestarted', 'shamahan':'alreadyRestarted'}
+
 
 @route('/test')
 def test():
     return 'True'
 
-
 @route('/allSettings/<round>/<name>')
 def allSettings(round, name):
+    global whoHasAlreadyRestarted
     returnToClient = {'isAllRight':'False'}
+    if whoHasAlreadyRestarted[name] == 'heIsNotRestarted':
+        returnToClient = {'isAllRight':'restartNow'}
+        whoHasAlreadyRestarted[name] = 'alreadyRestarted'  
+        return returnToClient
     if round == statusVote['round']:
         returnToClient['isAllRight'] = 'True'
         return returnToClient
@@ -71,7 +75,6 @@ def allSettings(round, name):
             returnToClient['round'] = 'final'
         return returnToClient
         
-
 @route('/changeStatusVote')
 def changeStatusVote():
     global statusVote
@@ -104,8 +107,7 @@ def changeStatusVote():
     print('***************************************')
     print(statusVote)
     return statusVote
-
-       
+   
 @route('/status')
 def status():
     global statusVote
@@ -118,7 +120,6 @@ def authorization(name):
     else:
         statusPlayers[name] = 'im ready'
     
-
 @route('/answer/<round>/<name>/<ans>')
 def answer(round, name, ans):
     global votingResult
@@ -133,6 +134,17 @@ def answer(round, name, ans):
 def result(round):
     return votingResult
 
-
+@route('/restartApp/')
+def restartApp():
+    global statusVote
+    global whoHasAlreadyRestarted
+    global votingResult
+    statusVote = 'zero'
+    for key in whoHasAlreadyRestarted:
+        whoHasAlreadyRestarted[key] = 'heIsNotRestarted'
+    for key in votingResult:
+        votingResult[key] =  0
+    for key in statusPlayers:
+        statusPlayers[key] = 'answerIsNotGiven'
 
 run(host='localhost', port=8080)

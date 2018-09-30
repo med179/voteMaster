@@ -17,7 +17,6 @@ import requests
 from time import sleep
 
 
-
 class voteMaser(App):
     def build(self):
         myScreenmanager = ScreenManager()
@@ -29,7 +28,7 @@ class voteMaser(App):
         result = Result(name='Result', settings=settings)
         final = Final(name='Final', settings=settings)
         request = Request(settings=settings, myScreenmanager=myScreenmanager, updateAnswerLbl=answer.updateLbl, updateResultLbl=result.updateLbl)
-        authorization = Authorization(name='Authorization', settings=settings, clientCallback=request.clientCallback)
+        authorization = Authorization(name='Authorization', settings=settings, admin=admin)
         enterNewIP = EnterNewIP(name='EnterNewIP', settings=settings)
         testNewIP = TestNewIP(name='TestNewIP', settings=settings)
         myScreenmanager.add_widget(authorization)
@@ -41,6 +40,7 @@ class voteMaser(App):
         myScreenmanager.add_widget(final)
         myScreenmanager.add_widget(enterNewIP)
         myScreenmanager.add_widget(testNewIP)
+        request.clientCallback()
         #проверка, досупен ли сервер
         try:
             testIP = requests.get(settings.IP_Adress + '/test')
@@ -52,6 +52,7 @@ class voteMaser(App):
         #если доступен, проверяем, логинился ли уже этот игрок/получаем статусы всех игроков
             if settings.store.exists('gameStatus'):
                 if settings.store.get('gameStatus')['data'] == 'gameIsOn':
+                    settings.clientCoutnry = settings.store.get('clientCoutnry')['data']
                 #открываем нужный экран    
                     getData = requests.get(settings.IP_Adress+'/authorization/admin')
                     statusPlayers = getData.json()
@@ -68,16 +69,13 @@ class voteMaser(App):
                             settings.round = 'three'
                         if rounsJson['round'] == 'five':
                             settings.round = 'four'         
-                        request.clientCallback()
                         myScreenmanager.current = 'Answer'
                     if statusPlayers[settings.clientCoutnry] == 'answerGiven':
                         getRound = requests.get(settings.IP_Adress+'/status')
                         rounsJson = getRound.json()
                         settings.round = rounsJson['round']
-                        request.clientCallback()
                         myScreenmanager.current = 'Result'
                     if statusPlayers[settings.clientCoutnry] == 'final':
-                        request.clientCallback()
                         myScreenmanager.current = 'Final'
             else:
                 myScreenmanager.current = 'Authorization'
@@ -138,7 +136,7 @@ class Authorization(Screen):
     def __init__(self, **kwargs):
         super(Authorization, self).__init__(**kwargs)
         self.settings = kwargs['settings']
-        self.clientCallback = kwargs['clientCallback']
+        self.admin = kwargs['admin']
         authorizationLayout = BoxLayout(spacing = 10, size_hint = [1, .5])
         riba_kitBtn = Button(text='riba_kitBtn', on_press=self.riba_kitPress)
         tridevCarstvoBtn = Button(text='tridevCarstvoBtn', on_press=self.tridevCarstvoPress)
@@ -159,10 +157,10 @@ class Authorization(Screen):
         self.settings.clientCoutnry = name
         self.settings.store.put('clientCoutnry', data=name)
         self.settings.store.put('gameStatus', data='gameIsOn')
-        self.clientCallback()
 
     def adminPress(self, *args):
         self.settings.clientCoutnry = 'admin'
+        self.admin.callback()
         self.manager.current = 'Admin'
 
     def riba_kitPress(self, *args):
@@ -197,13 +195,18 @@ class Admin(Screen):
         readyBtns.add_widget(self.lukomoreRdyLbl)
         readyBtns.add_widget(self.morskayaDergavaRdyLbl)
         readyBtns.add_widget(self.shamahanRdyLbl)
-        startBtn = Button(text='Start voting (get status)', size_hint=[.3, .3], on_press=self.changeStatusVote, background_color=[1, 0, 0, 1])
+        startBtn = Button(text='Start next round', size_hint=[.3, .3], on_press=self.changeStatusVote, background_color=[1, 0, 0, 1])
+        restartBtn = Button(text='Restart App', size_hint=[.3, .3], on_press=self.restartApp, background_color=[0, 0, 1, 1] )
         adminLayout.add_widget(readyBtns)
         adminLayout.add_widget(startBtn)
+        adminLayout.add_widget(restartBtn)
         self.add_widget(adminLayout)
-        self.bind(on_pre_enter=self.callback)
         self.bind(on_pre_enter=self.cleanStatusPlayers)
     
+    def restartApp(self, *args):
+        requests.get(self.settings.IP_Adress+'/changeStatusVote')
+        self.cleanStatusPlayers()
+
     def cleanStatusPlayers(self, *args):
         self.riba_kitRdyLbl.background_color = [1, 0, 0, 1]
         self.tridevCarstvoRdyLbl.background_color = [1, 0, 0, 1]
@@ -256,13 +259,17 @@ class Request():
         self.updateAnswerLbl = kwargs['updateAnswerLbl']
         
     def clientCallback(self, *args):
+        print ('**********************clientCallback******************')
         Clock.schedule_interval(self.callbackAllSettings, 1)
         Clock.schedule_interval(self.callbackVotingResult, 1)
 
     def callbackAllSettings(self, *args): 
+        print ('**********************callbackAllSettings******************')
         response = requests.get(self.settings.IP_Adress+'/allSettings/' + self.settings.round + '/' + self.settings.clientCoutnry)
         allSettings = response.json()
         print allSettings
+        if allSettings['isAllRight'] == 'restartNow':
+            self.restart()
         if allSettings['isAllRight'] == 'False':
             self.settings.question = allSettings['question']
             self.updateAnswerLbl()
@@ -273,23 +280,30 @@ class Request():
                 self.myScreenmanager.current = 'Answer'
 
     def callbackVotingResult(self, *args): 
+        print ('*********************callbackVotingResult******************')
+        
         response = requests.get(self.settings.IP_Adress+'/result/'+self.settings.round)
         votingResult = response.json()
         self.settings.votingResult = votingResult
         self.updateResultLbl()
 
+    def restart(self, *args):
+        self.settings.clientCoutnry = 'notSpecified'
+        self.settings.round = 'zero'
+        self.settings.question = ''
+        for key in self.settings.votingResult:
+            self.settings.votingResult[key] = 0
+        self.settings.store.put('gameStatus', data='gameIsOff')
 
 class MySettings(object):
     def __init__(self, *args):
         self.store = DictStore('user.dat')
-        self.clientCoutnry = 'test'
+        self.clientCoutnry = 'notSpecified'
         self.round = 'zero'
     #    self.IP_Adress = 'hthost:8080'
         self.IP_Adress = 'http://localhost:8080'
         self.question = ''
         self.votingResult = {'zero_yes':0, 'zero_no':0}
-        if self.store.exists('clientCoutnry'):
-            self.clientCoutnry = self.store.get('clientCoutnry')['data']
         if self.store.exists('IP'):
             self.IP_Adress = self.store.get('IP')['data']
 
