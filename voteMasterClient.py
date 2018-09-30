@@ -28,7 +28,7 @@ class voteMaser(App):
         result = Result(name='Result', settings=settings)
         final = Final(name='Final', settings=settings)
         request = Request(settings=settings, myScreenmanager=myScreenmanager, updateAnswerLbl=answer.updateLbl, updateResultLbl=result.updateLbl)
-        authorization = Authorization(name='Authorization', settings=settings, admin=admin)
+        authorization = Authorization(name='Authorization', settings=settings, admin=admin, request=request)
         enterNewIP = EnterNewIP(name='EnterNewIP', settings=settings)
         testNewIP = TestNewIP(name='TestNewIP', settings=settings)
         myScreenmanager.add_widget(authorization)
@@ -40,7 +40,6 @@ class voteMaser(App):
         myScreenmanager.add_widget(final)
         myScreenmanager.add_widget(enterNewIP)
         myScreenmanager.add_widget(testNewIP)
-        request.clientCallback()
         #проверка, досупен ли сервер
         try:
             testIP = requests.get(settings.IP_Adress + '/test')
@@ -68,18 +67,20 @@ class voteMaser(App):
                         if rounsJson['round'] == 'four':
                             settings.round = 'three'
                         if rounsJson['round'] == 'five':
-                            settings.round = 'four'         
+                            settings.round = 'four'   
+                        request.clientCallback()      
                         myScreenmanager.current = 'Answer'
                     if statusPlayers[settings.clientCoutnry] == 'answerGiven':
                         getRound = requests.get(settings.IP_Adress+'/status')
                         rounsJson = getRound.json()
                         settings.round = rounsJson['round']
+                        request.clientCallback()
                         myScreenmanager.current = 'Result'
                     if statusPlayers[settings.clientCoutnry] == 'final':
+                        request.clientCallback()
                         myScreenmanager.current = 'Final'
             else:
-                myScreenmanager.current = 'Authorization'
-        
+                myScreenmanager.current = 'Authorization'        
         return myScreenmanager
 
 
@@ -137,6 +138,7 @@ class Authorization(Screen):
         super(Authorization, self).__init__(**kwargs)
         self.settings = kwargs['settings']
         self.admin = kwargs['admin']
+        self.request = kwargs['request']
         authorizationLayout = BoxLayout(spacing = 10, size_hint = [1, .5])
         riba_kitBtn = Button(text='riba_kitBtn', on_press=self.riba_kitPress)
         tridevCarstvoBtn = Button(text='tridevCarstvoBtn', on_press=self.tridevCarstvoPress)
@@ -153,10 +155,12 @@ class Authorization(Screen):
         self.add_widget(authorizationLayout)
 
     def login(self, name):
+        self.request.clientCallback()
         self.manager.current = 'Waiting'
         self.settings.clientCoutnry = name
         self.settings.store.put('clientCoutnry', data=name)
         self.settings.store.put('gameStatus', data='gameIsOn')
+        print(self.settings.store.get('gameStatus')['data'])
 
     def adminPress(self, *args):
         self.settings.clientCoutnry = 'admin'
@@ -257,7 +261,7 @@ class Request():
         self.myScreenmanager = kwargs['myScreenmanager']
         self.updateResultLbl = kwargs['updateResultLbl']
         self.updateAnswerLbl = kwargs['updateAnswerLbl']
-        
+
     def clientCallback(self, *args):
         print ('**********************clientCallback******************')
         Clock.schedule_interval(self.callbackAllSettings, 1)
@@ -268,6 +272,8 @@ class Request():
         response = requests.get(self.settings.IP_Adress+'/allSettings/' + self.settings.round + '/' + self.settings.clientCoutnry)
         allSettings = response.json()
         print allSettings
+#разобраться с этим
+#нужно делать проверку, активна игра или нет
         if allSettings['isAllRight'] == 'restartNow':
             self.restart()
         if allSettings['isAllRight'] == 'False':
@@ -288,12 +294,13 @@ class Request():
         self.updateResultLbl()
 
     def restart(self, *args):
-        self.settings.clientCoutnry = 'notSpecified'
         self.settings.round = 'zero'
         self.settings.question = ''
         for key in self.settings.votingResult:
             self.settings.votingResult[key] = 0
         self.settings.store.put('gameStatus', data='gameIsOff')
+        self.myScreenmanager.current = 'Waiting'
+
 
 class MySettings(object):
     def __init__(self, *args):
