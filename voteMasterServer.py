@@ -30,6 +30,7 @@ def allSettings(round, name):
     elif round == 'final':            
         returnToClient = votingResult
         returnToClient['isAllRight'] = 'True'
+        return returnToClient
     else:
         if round == 'zero':
             if name == 'riba_kit':
@@ -134,8 +135,12 @@ def answer(round, name, ans):
 def result(round):
     return votingResult
 
-@route('/restartApp/')
+@route('/restartApp')
 def restartApp():
+    print('RESTARTRESTARTRESTARTRESTARTRESTARTRESTARTRESTART')
+    print('RESTARTRESTARTRESTARTRESTARTRESTARTRESTARTRESTART')
+    print('RESTARTRESTARTRESTARTRESTARTRESTARTRESTARTRESTART')
+    print('RESTARTRESTARTRESTARTRESTARTRESTARTRESTARTRESTART')
     global statusVote
     global whoHasAlreadyRestarted
     global votingResult

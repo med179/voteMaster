@@ -24,7 +24,7 @@ class voteMaser(App):
         answer = Answer(name='Answer', settings=settings)
         waiting = Waiting(name='Waiting', settings=settings)
         admin = Admin(name='Admin', settings=settings)
-        adminRoundScreen = AdminRoundScreen(name='AdminRoundScreen', settings=settings)
+        adminPauseScreen = AdminPauseScreen(name='AdminPauseScreen', settings=settings)
         result = Result(name='Result', settings=settings)
         final = Final(name='Final', settings=settings)
         request = Request(settings=settings, myScreenmanager=myScreenmanager, updateAnswerLbl=answer.updateLbl, updateResultLbl=result.updateLbl)
@@ -35,7 +35,7 @@ class voteMaser(App):
         myScreenmanager.add_widget(answer)
         myScreenmanager.add_widget(waiting)
         myScreenmanager.add_widget(admin) 
-        myScreenmanager.add_widget(adminRoundScreen)
+        myScreenmanager.add_widget(adminPauseScreen)
         myScreenmanager.add_widget(result)
         myScreenmanager.add_widget(final)
         myScreenmanager.add_widget(enterNewIP)
@@ -208,7 +208,8 @@ class Admin(Screen):
         self.bind(on_pre_enter=self.cleanStatusPlayers)
     
     def restartApp(self, *args):
-        requests.get(self.settings.IP_Adress+'/changeStatusVote')
+        requests.get(self.settings.IP_Adress+'/restartApp')
+        print ('restartApp 88888888888888888888888')
         self.cleanStatusPlayers()
 
     def cleanStatusPlayers(self, *args):
@@ -220,7 +221,7 @@ class Admin(Screen):
 
     def changeStatusVote(self, *args):
         requests.get(self.settings.IP_Adress+'/changeStatusVote')
-        self.manager.current = 'AdminRoundScreen'
+        self.manager.current = 'AdminPauseScreen'
 
     def callback(self, *args):
         Clock.schedule_interval(self.getStatusPlayrs, 1)
@@ -240,9 +241,9 @@ class Admin(Screen):
             self.shamahanRdyLbl.background_color = [0, 1, 0, 1]        
 
 
-class AdminRoundScreen(Screen):
+class AdminPauseScreen(Screen):
     def __init__(self, **kwargs):
-        super(AdminRoundScreen, self).__init__(**kwargs)
+        super(AdminPauseScreen, self).__init__(**kwargs)
         self.settings = kwargs['settings']
         mainScreen = BoxLayout()
         roundLbl = Label(text='PAUSE')
@@ -272,9 +273,8 @@ class Request():
         response = requests.get(self.settings.IP_Adress+'/allSettings/' + self.settings.round + '/' + self.settings.clientCoutnry)
         allSettings = response.json()
         print allSettings
-#разобраться с этим
-#нужно делать проверку, активна игра или нет
         if allSettings['isAllRight'] == 'restartNow':
+            print ('RESTART1')
             self.restart()
         if allSettings['isAllRight'] == 'False':
             self.settings.question = allSettings['question']
@@ -294,6 +294,7 @@ class Request():
         self.updateResultLbl()
 
     def restart(self, *args):
+        print ('RESTART2')
         self.settings.round = 'zero'
         self.settings.question = ''
         for key in self.settings.votingResult:
