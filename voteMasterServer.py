@@ -144,7 +144,7 @@ def restartApp():
     global statusVote
     global whoHasAlreadyRestarted
     global votingResult
-    statusVote = 'zero'
+    statusVote['round'] = 'zero'
     for key in whoHasAlreadyRestarted:
         whoHasAlreadyRestarted[key] = 'heIsNotRestarted'
     for key in votingResult:
