@@ -104,9 +104,6 @@ def changeStatusVote():
         statusVote['round'] = 'one'
         for key in statusPlayers:
             statusPlayers[key] = 'answerIsNotGiven'    
-
-    print('***************************************')
-    print(statusVote)
     return statusVote
    
 @route('/status')
@@ -128,7 +125,6 @@ def answer(round, name, ans):
     key = round + '_' + ans
     votingResult[key] += 1
     statusPlayers[name] = 'answerGiven'
-    print votingResult
     return 'You voted'
 
 @route('/result/<round>')
@@ -137,10 +133,6 @@ def result(round):
 
 @route('/restartApp')
 def restartApp():
-    print('RESTARTRESTARTRESTARTRESTARTRESTARTRESTARTRESTART')
-    print('RESTARTRESTARTRESTARTRESTARTRESTARTRESTARTRESTART')
-    print('RESTARTRESTARTRESTARTRESTARTRESTARTRESTARTRESTART')
-    print('RESTARTRESTARTRESTARTRESTARTRESTARTRESTARTRESTART')
     global statusVote
     global whoHasAlreadyRestarted
     global votingResult

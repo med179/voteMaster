@@ -8,6 +8,7 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.clock import Clock
@@ -15,7 +16,16 @@ from kivy.storage.dictstore import DictStore
 from kivy.uix.textinput import TextInput
 import requests
 from time import sleep
+from kivy.uix.image import Image
+from kivy.config import Config
+from kivy.uix.widget import Widget
+from kivy.graphics import *
+from kivy.graphics.vertex_instructions import RoundedRectangle
+from kivy.uix.behaviors import ButtonBehavior
 
+Config.set('graphics', 'resizable', 0)
+Config.set('graphics', 'width', 1920/2)
+Config.set('graphics', 'height', 1200/2)
 
 class voteMaser(App):
     def build(self):
@@ -100,7 +110,6 @@ class EnterNewIP(Screen):
         self.add_widget(body)
 
     def on_text(self, instance, value):
-        print('The widget', instance, 'have:', value)
         self.newIP = value
 
     def sendNewIP(self, *args):
@@ -160,7 +169,6 @@ class Authorization(Screen):
         self.settings.clientCoutnry = name
         self.settings.store.put('clientCoutnry', data=name)
         self.settings.store.put('gameStatus', data='gameIsOn')
-        print(self.settings.store.get('gameStatus')['data'])
 
     def adminPress(self, *args):
         self.settings.clientCoutnry = 'admin'
@@ -209,7 +217,6 @@ class Admin(Screen):
     
     def restartApp(self, *args):
         requests.get(self.settings.IP_Adress+'/restartApp')
-        print ('restartApp 88888888888888888888888')
         self.cleanStatusPlayers()
 
     def cleanStatusPlayers(self, *args):
@@ -264,17 +271,13 @@ class Request():
         self.updateAnswerLbl = kwargs['updateAnswerLbl']
 
     def clientCallback(self, *args):
-        print ('**********************clientCallback******************')
         Clock.schedule_interval(self.callbackAllSettings, 1)
         Clock.schedule_interval(self.callbackVotingResult, 1)
 
     def callbackAllSettings(self, *args): 
-        print ('**********************callbackAllSettings******************')
         response = requests.get(self.settings.IP_Adress+'/allSettings/' + self.settings.round + '/' + self.settings.clientCoutnry)
         allSettings = response.json()
-        print allSettings
         if allSettings['isAllRight'] == 'restartNow':
-            print ('RESTART1')
             self.restart()
         if allSettings['isAllRight'] == 'False':
             self.settings.question = allSettings['question']
@@ -286,15 +289,12 @@ class Request():
                 self.myScreenmanager.current = 'Answer'
 
     def callbackVotingResult(self, *args): 
-        print ('*********************callbackVotingResult******************')
-        
         response = requests.get(self.settings.IP_Adress+'/result/'+self.settings.round)
         votingResult = response.json()
         self.settings.votingResult = votingResult
         self.updateResultLbl()
 
     def restart(self, *args):
-        print ('RESTART2')
         self.settings.round = 'zero'
         self.settings.question = ''
         for key in self.settings.votingResult:
@@ -308,7 +308,6 @@ class MySettings(object):
         self.store = DictStore('user.dat')
         self.clientCoutnry = 'notSpecified'
         self.round = 'zero'
-    #    self.IP_Adress = 'hthost:8080'
         self.IP_Adress = 'http://localhost:8080'
         self.question = ''
         self.votingResult = {'zero_yes':0, 'zero_no':0}
@@ -316,14 +315,71 @@ class MySettings(object):
             self.IP_Adress = self.store.get('IP')['data']
 
 
+class RoundedWidget(Widget):
+    def __init__(self, **kwargs):
+        super(RoundedWidget, self).__init__(**kwargs)
+        self.background_color = (1, 1, 1, 0)
+        self.background_normal = ''
+        if kwargs.has_key('background_color'):
+            background_color = kwargs['background_color']
+        else:
+            background_color = (1, 1, 1, 0)
+        with self.canvas.before:
+#            Color(rgba=(1, 0, 0, 1))
+#            self.rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[20, ])          
+            Color(rgba=background_color)
+            self.rect2 = RoundedRectangle(pos=self.pos, size=self.size, radius=[20, ])
+
+        self.bind(pos=self.update_rect, size=self.update_rect)
+
+    def update_rect(self, *args):
+#        self.rect.pos = self.pos
+#        self.rect.size = self.size
+        self.rect2.pos = self.pos
+        self.rect2.size = self.size
+
+class RoundedFlatButton(ButtonBehavior, RoundedWidget, Label):
+    pass
+
+
 class Waiting(Screen):
     def __init__(self, **kwargs):
         super(Waiting, self).__init__(**kwargs)
         self.settings = kwargs['settings']
-        waitLayout = BoxLayout()
-        waitBtn = Button(text='Приступрить к голосованию', on_press=self.imReady)
-        waitLayout.add_widget(waitBtn)
-        self.add_widget(waitLayout)
+        fonLayout = FloatLayout()
+        fonWait = Image(source='fonWait.png', allow_stretch = True)	
+        waitLayout = BoxLayout(orientation='horizontal')
+
+        colsOneLayout = BoxLayout(orientation='vertical', size_hint=(.25, 1))
+        colsOneLayout.add_widget(Widget(size_hint=(1, .1)))
+        blazonImg = Image(source='riba_kit.png', allow_stretch = True, size_hint=(1, .5))
+        colsOneLayout.add_widget(blazonImg)
+        colsOneLayout.add_widget(Widget())                           
+        colsTwoLayout = BoxLayout(orientation='vertical', size_hint=(.5, 1))
+        label = Label(
+            text='[color=C8E3FE][b]Совещание совета безопасности[/b][/color]',  
+            markup = True, 
+            font_size = 28)
+        colsTwoLayout.add_widget(label)
+        colsTwoLayout.add_widget(Widget())
+        waitBtn = RoundedFlatButton(
+            text='[color=D7F5FF][b]ПРИСТУПИТЬ К ГОЛОСОВАНИЮ[/b][/color]', 
+            on_press=self.imReady, 
+            markup = True, 
+            font_size = 24,
+            background_color=[.47, .69, 1, 1],
+            background_normal = '')  
+        colsTwoLayout.add_widget(waitBtn)
+        colsTwoLayout.add_widget(Widget())
+        colsTwoLayout.add_widget(Widget())
+        colsThreeLayout = BoxLayout(orientation='vertical', size_hint=(.25, 1))
+        colsThreeLayout.add_widget(Widget())      
+        waitLayout.add_widget(colsOneLayout)
+        waitLayout.add_widget(colsTwoLayout)
+        waitLayout.add_widget(colsThreeLayout)
+        fonLayout.add_widget(fonWait)
+        fonLayout.add_widget(waitLayout)
+        self.add_widget(fonLayout)
 
     def imReady(self, *args):
         requests.get(self.settings.IP_Adress+'/authorization/'+self.settings.clientCoutnry)
@@ -368,7 +424,6 @@ class Result(Screen):
         self.add_widget(result)
 
     def updateLbl(self, *args):
-        print (self.settings.votingResult)
         self.ansYes.text = str(self.settings.votingResult[self.settings.round+'_yes'])
         self.ansNo.text = str(self.settings.votingResult[self.settings.round+'_no'])
     
