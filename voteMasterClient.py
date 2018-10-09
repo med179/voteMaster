@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #voteMaser - client part
+from __future__ import unicode_literals
 
 from kivy.app import App
 from kivy.uix.button import Button
@@ -23,7 +24,7 @@ from kivy.graphics import *
 from kivy.graphics.vertex_instructions import RoundedRectangle
 from kivy.uix.behaviors import ButtonBehavior
 
-Config.set('graphics', 'resizable', 0)
+Config.set('graphics', 'resizable', 1)
 Config.set('graphics', 'width', 1920/2)
 Config.set('graphics', 'height', 1200/2)
 
@@ -165,10 +166,10 @@ class Authorization(Screen):
 
     def login(self, name):
         self.request.clientCallback()
-        self.manager.current = 'Waiting'
         self.settings.clientCoutnry = name
         self.settings.store.put('clientCoutnry', data=name)
         self.settings.store.put('gameStatus', data='gameIsOn')
+        self.manager.current = 'Waiting'
 
     def adminPress(self, *args):
         self.settings.clientCoutnry = 'admin'
@@ -324,19 +325,15 @@ class RoundedWidget(Widget):
             background_color = kwargs['background_color']
         else:
             background_color = (1, 1, 1, 0)
-        with self.canvas.before:
-#            Color(rgba=(1, 0, 0, 1))
-#            self.rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[20, ])          
+        with self.canvas.before:    
             Color(rgba=background_color)
-            self.rect2 = RoundedRectangle(pos=self.pos, size=self.size, radius=[20, ])
+            self.rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[20, ])
 
         self.bind(pos=self.update_rect, size=self.update_rect)
 
     def update_rect(self, *args):
-#        self.rect.pos = self.pos
-#        self.rect.size = self.size
-        self.rect2.pos = self.pos
-        self.rect2.size = self.size
+        self.rect.pos = self.pos
+        self.rect.size = self.size
 
 class RoundedFlatButton(ButtonBehavior, RoundedWidget, Label):
     pass
@@ -349,11 +346,10 @@ class Waiting(Screen):
         fonLayout = FloatLayout()
         fonWait = Image(source='fonWait.png', allow_stretch = True)	
         waitLayout = BoxLayout(orientation='horizontal')
-
         colsOneLayout = BoxLayout(orientation='vertical', size_hint=(.25, 1))
         colsOneLayout.add_widget(Widget(size_hint=(1, .1)))
-        blazonImg = Image(source='riba_kit.png', allow_stretch = True, size_hint=(1, .5))
-        colsOneLayout.add_widget(blazonImg)
+        self.blazonImg = Image(allow_stretch = True, size_hint=(1, .5))
+        colsOneLayout.add_widget(self.blazonImg)
         colsOneLayout.add_widget(Widget())                           
         colsTwoLayout = BoxLayout(orientation='vertical', size_hint=(.5, 1))
         label = Label(
@@ -380,28 +376,66 @@ class Waiting(Screen):
         fonLayout.add_widget(fonWait)
         fonLayout.add_widget(waitLayout)
         self.add_widget(fonLayout)
+        self.bind(on_pre_enter=self.updateBlazonImg)
 
     def imReady(self, *args):
         requests.get(self.settings.IP_Adress+'/authorization/'+self.settings.clientCoutnry)
+
+    def updateBlazonImg(self, *args):
+        self.blazonImg.source = self.settings.clientCoutnry + '.png'
 
 
 class Answer(Screen):
     def __init__(self, **kwargs):
         super(Answer, self).__init__(**kwargs)
         self.settings = kwargs['settings']
-        answerLayout = BoxLayout(orientation='vertical')
-        self.questionLbl = Label(text='TestTEXT')
+        fonLayout = FloatLayout()
+        fonAnswer = Image(source='fonAnswer.png', allow_stretch = True)	
+        answerLayout = BoxLayout(orientation='horizontal')
+        colsOneLayout = BoxLayout(orientation='vertical', size_hint=(.69, 1))
+        rowsOneInColsOneLayout = BoxLayout(orientation='horizontal')
+        self.blazonImg = Image(source='riba_kit.png', allow_stretch = True, size_hint=(.33, 1))
+        self.questionLbl = Label(text='ВОПРОС', size_hint=(.67, 1), markup = True, font_size = 28, text_size=self.size)
+
+        rowsOneInColsOneLayout.add_widget(self.blazonImg)
+#        rowsOneInColsOneLayout.add_widget(self.questionLbl)
+        rowsOneInColsOneLayout.add_widget(Button(size_hint=(.67, 1)))
+
+        colsOneLayout.add_widget(rowsOneInColsOneLayout)
+        rowsTwoInColsOneLayout = BoxLayout()
+        colsTwoLayout = BoxLayout(orientation='vertical', size_hint=(.31, 1))
+        colsTwoLayout.add_widget(Button())
+        colsOneLayout.add_widget(rowsTwoInColsOneLayout)
         btnLayout = BoxLayout(spacing = 20)
         btnYes = Button(text='YES', on_press = self.answerYes)
         btnNo = Button(text='NO', on_press = self.answerNo)
         btnLayout.add_widget(btnYes)
         btnLayout.add_widget(btnNo)
-        answerLayout.add_widget(self.questionLbl)
-        answerLayout.add_widget(btnLayout)
-        self.add_widget(answerLayout)
+#        answerLayout.add_widget(self.questionLbl)
+#        answerLayout.add_widget(btnLayout)
+        answerLayout.add_widget(colsOneLayout)
+        answerLayout.add_widget(colsTwoLayout)
+        fonLayout.add_widget(fonAnswer)
+        fonLayout.add_widget(answerLayout)
+        self.add_widget(fonLayout)
 
     def updateLbl(self, *args):
-        self.questionLbl.text = self.settings.question
+        numberOfRound = str(0)
+        if self.settings.round == 'zero':
+            numberOfRound = str(0)
+        if self.settings.round == 'one':
+            numberOfRound = str(1)
+        if self.settings.round == 'two':
+            numberOfRound = str(2)
+        if self.settings.round == 'three':
+            numberOfRound = str(3)
+        if self.settings.round == 'four':
+            numberOfRound = str(4)
+        if self.settings.round == 'five':
+            numberOfRound = str(5)
+        if self.settings.round == 'final':
+            numberOfRound = str(6)
+        self.questionLbl.text = '[color=8B452D][b]Вопрос '+numberOfRound+'[/b][/color]\n[color=7F635D]'+self.settings.question+'[/color]'
 
     def answerYes(self, *args):
             requests.get(self.settings.IP_Adress+'/answer/'+self.settings.round+'/'+self.settings.clientCoutnry+'/yes')
