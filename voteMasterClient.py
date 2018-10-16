@@ -399,6 +399,7 @@ class RoundedWidget(Widget):
         self.rect.pos = self.pos
         self.rect.size = self.size
 
+
 class RoundedFlatButton(ButtonBehavior, RoundedWidget, Label):
     pass
 
@@ -491,7 +492,7 @@ class Answer(Screen):
         rowsTwoInColsOneLayout.add_widget(Widget(size_hint=(.2, 1)))
         colsOneLayout.add_widget(rowsTwoInColsOneLayout)
         colsOneLayout.add_widget(Widget(size_hint=(1, .2)))
-        self.colsTwoLayout = BoxLayout(orientation='vertical', size_hint=(.31, 1), spacing = 5)
+        self.colsTwoLayout = GridLayout(rows=7, size_hint=(.31, 1), row_force_default=True, row_default_height=150)
 #        colsTwoLayout.add_widget(self.getWitgetForRightCol('numberOfQuestion', 'decision', 'question', 'result'))
 #        colsTwoLayout.add_widget(Button())
 
@@ -509,30 +510,38 @@ class Answer(Screen):
         fonLayout.add_widget(fonAnswer)
         fonLayout.add_widget(answerLayout)
         self.bind(on_pre_enter=self.updateColsTwo)
+        self.bind(on_pre_enter=self.updateBlazonImg)
         self.add_widget(fonLayout)
+
+    def updateBlazonImg(self, *args):
+        self.blazonImg.source = self.settings.clientCoutnry + '.png'
 
     def updateColsTwo(self, *args):
 #тут нужно дописать. Главное понять, как проще получиь доступ к виджетам, 
 #которые я передаю через функцию генерации виджета. Сейчас все в списках, и это не особо удобно
+#        newWidget, rowOneLbl, rowThreeLbl = self.getWitgetForRightCol(self.settings.numberOfQuestion, ' ', self.settings.question, 'Обсуждается')
         self.listOfWitgetsOnRightCol.append(self.getWitgetForRightCol(self.settings.numberOfQuestion, ' ', self.settings.question, 'Обсуждается'))
-        self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1])
+        self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1][0])
+#        try:
+#            self.listOfWitgetsOnRightCol[-2][1].text = 
+#        except:
+#            print('ERROR')
 
 
-#ЭТО НУЖНО ДОДЕЛАТЬ
 
     def getWitgetForRightCol(self, numberOfQuestion, decision, question, result):
         col = '[color=D9FFFF]'
         colClose = '[/color]'
         bs = '[b]'
         bc = '[/b]'
-        mainLayout = BoxLayout(orientation='vertical', size_hint=(1, .2))
-        rowOneLbl = Label(markup = True, font_size = 18, halign='left', valign='center')
+        mainLayout = BoxLayout(orientation='vertical')
+        rowOneLbl = Label(markup = True, font_size = 18, halign='left', valign='center', size_hint=(1, .25))
         rowOneLbl.text = col + bs + numberOfQuestion + decision + bc + colClose
         rowOneLbl.bind(size=rowOneLbl.setter('text_size'))
-        rowTwoLbl = Label(markup = True, font_size = 16, halign='left', valign='center')
+        rowTwoLbl = Label(markup = True, font_size = 16, halign='left', valign='center', size_hint=(1, .5))
         rowTwoLbl.text = col + question + colClose
         rowTwoLbl.bind(size=rowTwoLbl.setter('text_size'))
-        rowThreeLbl = Label(markup = True, font_size = 14, halign='left', valign='center')
+        rowThreeLbl = Label(markup = True, font_size = 14, halign='left', valign='center', size_hint=(1, .25))
         rowThreeLbl.text = col + result + colClose
         rowThreeLbl.bind(size=rowThreeLbl.setter('text_size'))
 
@@ -563,16 +572,66 @@ class Result(Screen):
     def __init__(self, **kwargs):
         super(Result, self).__init__(**kwargs)
         self.settings = kwargs['settings']
-        result = BoxLayout()
-        self.ansYes = Label(text='0')
-        self.ansNo = Label(text='0')
-        result.add_widget(self.ansYes)
-        result.add_widget(self.ansNo)
-        self.add_widget(result)
+        fonLayout = FloatLayout()
+        fonResult = Image(source='fonResult.png', allow_stretch = True)	
+        resultLayout = BoxLayout(orientation='horizontal')
+        colsOneLayout = BoxLayout(orientation='vertical', size_hint=(.69, 1))
+        rowsOneInColsOneLayout = BoxLayout(orientation='horizontal', size_hint=(1, .5))
+        self.blazonImg = Image(source='riba_kit.png', allow_stretch = True, size_hint=(.4, 1))
+        self.questionLbl = Label(text='ВОПРОС', size_hint=(.6, 1), markup = True, font_size = 28, halign='left', valign='center')
+        self.questionLbl.bind(size=self.questionLbl.setter('text_size'))
+        rowsOneInColsOneLayout.add_widget(self.blazonImg)
+        rowsOneInColsOneLayout.add_widget(self.questionLbl)
+        colsOneLayout.add_widget(rowsOneInColsOneLayout)
+
+        rowsTwoInColsOneLayout = BoxLayout(orientation='horizontal', size_hint=(1, .3))
+        self.ansYes = Label(
+            text='[color=00642F][b]ЗА[/b][/color]', 
+            markup = True, 
+            font_size = 24,
+            size_hint=(.7, .5))
+        self.ansNo = Label(
+            text='[color=FD0302][b]ПРОТИВ[/b][/color]', 
+            markup = True, 
+            font_size = 24,
+            size_hint=(.7, .5))
+        rowsTwoInColsOneLayout.add_widget(Widget(size_hint=(.2, 1)))
+        rowsTwoInColsOneLayout.add_widget(self.ansYes)
+        rowsTwoInColsOneLayout.add_widget(Widget(size_hint=(.1, 1)))
+        rowsTwoInColsOneLayout.add_widget(self.ansNo )
+        rowsTwoInColsOneLayout.add_widget(Widget(size_hint=(.2, 1)))
+        colsOneLayout.add_widget(rowsTwoInColsOneLayout)
+        colsOneLayout.add_widget(Widget(size_hint=(1, .2)))
+        resultLayout.add_widget(colsOneLayout)
+        resultLayout.add_widget(Widget(size_hint=(.05, 1)))
+        colsTwoLayout = GridLayout(rows=7, size_hint=(.31, 1), row_force_default=True, row_default_height=150)
+        resultLayout.add_widget(colsTwoLayout)
+
+#        self.ansYes = Label(text='0')
+#        self.ansNo = Label(text='0')
+#        result.add_widget(self.ansYes)
+#        result.add_widget(self.ansNo)
+
+        fonLayout.add_widget(fonResult)
+        fonLayout.add_widget(resultLayout)
+        self.bind(on_pre_enter=self.updateBlazonImg)
+        self.bind(on_pre_enter=self.updateQuestionLbl)
+        self.add_widget(fonLayout)
+
+    def updateQuestionLbl(self, *args):
+        colOneBold = '[color=8B452D][b]'
+        colOneBoldClose = '[/b][/color]'
+        colTwo = '\n[color=7F635D]'
+        colTrhee = '\n[color=A6A8B4]'
+        colClose = '[/color]'
+        self.questionLbl.text = colOneBold + self.settings.numberOfQuestion + colOneBoldClose + colTwo + self.settings.question + colClose + colTrhee + self.settings.questionAddition + colClose
+
+    def updateBlazonImg(self, *args):
+        self.blazonImg.source = self.settings.clientCoutnry + '.png'
 
     def updateLbl(self, *args):
-        self.ansYes.text = str(self.settings.votingResult[self.settings.round+'_yes'])
-        self.ansNo.text = str(self.settings.votingResult[self.settings.round+'_no'])
+        self.ansYes.text = '[color=00642F][b]ЗА  ' + str(self.settings.votingResult[self.settings.round+'_yes']) + ' [/b][/color]'
+        self.ansNo.text = '[color=FD0302][b]' + str(self.settings.votingResult[self.settings.round+'_no']) + ' ПРОТИВ[/b][/color]'
     
 
 class Final(Screen):
