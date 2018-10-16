@@ -6,7 +6,17 @@ from bottle import route, run, template
 
 #список стран пользователей
 statusPlayers = {'riba_kit':'', 'tridevCarstvo':'', 'lukomore':'', 'morskayaDergava':'', 'shamahan':''}
-question = {'one':'Отказ от серебряно-золотого международного валютного стандарта', 'two':'Использование территории Чудо-юдо рыбы Кита для размещения коалиционного флота', 'three':'Приостановление членства в Организации Объединенных сказочных Наций Кощеева царства', 'four':'Введение эмбарго на мертвую воду для Кощеева царства', 'five':'Создание бесполетной зоны над Кощеевым царством'}
+#question = {'one':'[color=8B452D][b]Вопрос 1[/b][/color]\n[color=7F635D]Отказ от серебряно-золотого международного валютного стандарта[/color]', 
+#    'two':'[color=8B452D][b]Вопрос 2[/b][/color]\n[color=7F635D]Использование территории Чудо-юдо рыбы Кита для размещения коалиционного флота[/color]', 
+#    'three':'[color=8B452D][b]Вопрос 3[/b][/color]\n[color=7F635D]Приостановление членства в Организации Объединенных сказочных Наций Кощеева царства[/color]', 
+#    'four':'[color=8B452D][b]Вопрос 4[/b][/color]\n[color=7F635D]Введение эмбарго на мертвую воду для Кощеева царства[/color]', 
+#    'five':'[color=8B452D][b]Вопрос 5[/b][/color]\n[color=7F635D]Создание бесполетной зоны над Кощеевым царством[/color]'}
+question = {
+    'one':'Отказ от серебряно-золотого международного валютного стандарта', 
+    'two':'Использование территории Чудо-юдо рыбы Кита для размещения коалиционного флота', 
+    'three':'Приостановление членства в Организации Объединенных сказочных Наций Кощеева царства', 
+    'four':'Введение эмбарго на мертвую воду для Кощеева царства', 
+    'five':'Создание бесполетной зоны над Кощеевым царством'}
 votingResult = {'zero_yes':0, 'zero_no':0, 'one_yes':0, 'one_no':0, 'two_yes':0, 'two_no':0, 'three_yes':0, 'three_no':0, 'four_yes':0, 'four_no':0, 'five_yes':0, 'five_no':0}
 statusVote = {'round':'zero'}
 whoHasAlreadyRestarted = {'riba_kit':'alreadyRestarted', 'tridevCarstvo':'alreadyRestarted', 'lukomore':'alreadyRestarted', 'morskayaDergava':'alreadyRestarted', 'shamahan':'alreadyRestarted'}
@@ -18,8 +28,13 @@ def test():
 
 @route('/allSettings/<round>/<name>')
 def allSettings(round, name):
+    YES = '(большинство должны проголосовать ЗА по этому вопросу)'
+    NO = '(большинство должны проголосовать ПРОТИВ по этому вопросу)'
+
     global whoHasAlreadyRestarted
     returnToClient = {'isAllRight':'False'}
+    returnToClient['addition'] = ' '
+    returnToClient['numberOfQuestion'] = ' '
     if whoHasAlreadyRestarted[name] == 'heIsNotRestarted':
         returnToClient = {'isAllRight':'restartNow'}
         whoHasAlreadyRestarted[name] = 'alreadyRestarted'  
@@ -33,45 +48,45 @@ def allSettings(round, name):
         return returnToClient
     else:
         if round == 'zero':
-            if name == 'riba_kit':
-                returnToClient['question'] = question['one'] + ' YES'
-            elif name == 'tridevCarstvo':
-                returnToClient['question'] = question['one'] + ' NO'
-            else:
-                returnToClient['question'] = question['one']
+            returnToClient['question'] = question['one']
             returnToClient['round'] = 'one'
-        if round == 'one':
+            returnToClient['numberOfQuestion'] = 'Вопрос 1'
+            if name == 'riba_kit':
+                returnToClient['addition'] = YES
             if name == 'tridevCarstvo':
-                returnToClient['question'] = question['two'] + ' YES'
-            elif name == 'riba_kit':
-                returnToClient['question'] = question['two'] +  ' NO'
-            else:
-                returnToClient['question'] = question['two']
+                returnToClient['addition'] = NO
+        if round == 'one':
+            returnToClient['question'] = question['two']
             returnToClient['round'] = 'two'
+            returnToClient['numberOfQuestion'] = 'Вопрос 2'
+            if name == 'tridevCarstvo':
+                returnToClient['addition'] = YES
+            elif name == 'riba_kit':
+                returnToClient['addition'] = NO
         if round == 'two':
-            if name == 'lukomore':
-                returnToClient['question'] = question['three'] + ' YES'
-            elif name == 'morskayaDergava':
-                returnToClient['question'] = question['three'] + ' NO'
-            else:
-                returnToClient['question'] = question['three']
+            returnToClient['question'] = question['three']
             returnToClient['round'] = 'three'
+            returnToClient['numberOfQuestion'] = 'Вопрос 3'
+            if name == 'lukomore':
+                returnToClient['addition'] = YES
+            elif name == 'morskayaDergava':
+                returnToClient['addition'] = NO
         if round == 'three':
-            if name == 'shamahan':
-                returnToClient['question'] = question['four'] + ' YES'
-            elif name == 'lukomore':
-                returnToClient['question'] = question['four'] + ' NO'
-            else:
-                returnToClient['question'] = question['four']
+            returnToClient['question'] = question['four']
             returnToClient['round'] = 'four'
+            returnToClient['numberOfQuestion'] = 'Вопрос 4'
+            if name == 'shamahan':
+                returnToClient['addition'] = YES
+            elif name == 'lukomore':
+                returnToClient['addition'] = NO
         if round == 'four':
-            if name == 'morskayaDergava':
-                returnToClient['question'] = question['five'] + ' YES'
-            elif name == 'shamahan':
-                returnToClient['question'] = question['five'] + ' NO'
-            else:
-                returnToClient['question'] = question['five']
+            returnToClient['question'] = question['five']
             returnToClient['round'] = 'five'
+            returnToClient['numberOfQuestion'] = 'Вопрос 5'
+            if name == 'morskayaDergava':
+                returnToClient['addition'] = YES
+            elif name == 'shamahan':
+                returnToClient['addition'] = NO
         if round == 'five':
             returnToClient['round'] = 'final'
         return returnToClient

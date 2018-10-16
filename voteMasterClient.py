@@ -24,11 +24,12 @@ from kivy.graphics import *
 from kivy.graphics.vertex_instructions import RoundedRectangle
 from kivy.uix.behaviors import ButtonBehavior
 
+divider = 2
 Config.set('graphics', 'resizable', 1)
-Config.set('graphics', 'width', 1920/2)
-Config.set('graphics', 'height', 1200/2)
+Config.set('graphics', 'width', 1920/divider)
+Config.set('graphics', 'height', 1200/divider)
 
-class voteMaser(App):
+class VoteMaser(App):
     def build(self):
         myScreenmanager = ScreenManager()
         settings = MySettings()
@@ -149,20 +150,80 @@ class Authorization(Screen):
         self.settings = kwargs['settings']
         self.admin = kwargs['admin']
         self.request = kwargs['request']
-        authorizationLayout = BoxLayout(spacing = 10, size_hint = [1, .5])
-        riba_kitBtn = Button(text='riba_kitBtn', on_press=self.riba_kitPress)
-        tridevCarstvoBtn = Button(text='tridevCarstvoBtn', on_press=self.tridevCarstvoPress)
-        lukomoreBtn = Button(text='lukomoreBtn', on_press=self.lukomorePress)
-        morskayaDergavaBtn = Button(text='morskayaDergavaBtn', on_press=self.morskayaDergavaPress)
-        shamahanBtn = Button(text='shamahanBtn', on_press=self.shamahanPress)
-        adminBtn = Button(text='admin', on_press=self.adminPress, background_color=[1, 0, 0, 1])
+        fonLayout = FloatLayout()
+        authFon = Image(source='authFon.png', allow_stretch = True)
+        fonLayout.add_widget(authFon)
+        authorizationLayout = GridLayout(spacing = 20, cols=5)
+        riba_kitBtn = RoundedFlatButton(
+            on_press=self.riba_kitPress,
+            text='[color=D7F5FF][b]Рыба-кит[/b][/color]', 
+            markup = True, 
+            font_size = 24,
+            background_color=[.47, .69, 1, 1],
+            background_normal = '')
+        tridevCarstvoBtn = RoundedFlatButton(
+            on_press=self.tridevCarstvoPress,
+            text='[color=D7F5FF][b]Тридевятое\nцарство[/b][/color]', 
+            markup = True, 
+            font_size = 24,
+            background_color=[.47, .69, 1, 1],
+            background_normal = '')
+        lukomoreBtn = RoundedFlatButton(
+            on_press=self.lukomorePress,
+            text='[color=D7F5FF][b]Лукоморье[/b][/color]', 
+            markup = True, 
+            font_size = 24,
+            background_color=[.47, .69, 1, 1],
+            background_normal = '')
+        morskayaDergavaBtn = RoundedFlatButton(
+            on_press=self.morskayaDergavaPress,
+            text='[color=D7F5FF][b]Морская\nдержава[/b][/color]', 
+            markup = True, 
+            font_size = 24,
+            background_color=[.47, .69, 1, 1],
+            background_normal = '')
+        shamahanBtn = RoundedFlatButton(
+            on_press=self.shamahanPress,
+            text='[color=D7F5FF][b]Шамахан[/b][/color]', 
+            markup = True, 
+            font_size = 24,
+            background_color=[.47, .69, 1, 1],
+            background_normal = '')
+        adminBtn = RoundedFlatButton(
+            on_press=self.adminPress,
+            text='[color=D7F5FF][b]Админ[/b][/color]', 
+            markup = True, 
+            font_size = 24,
+            background_color=[1, .10, .10, 1],
+            background_normal = '')
+        authorizationLayout.add_widget(Widget())
+        authorizationLayout.add_widget(Widget())
+        authorizationLayout.add_widget(Label(text='[color=C8E3FE][b]Выберите государство[/b][/color]', markup = True, font_size = 28))
+        authorizationLayout.add_widget(Widget())
+        authorizationLayout.add_widget(Widget())    
         authorizationLayout.add_widget(riba_kitBtn)
         authorizationLayout.add_widget(tridevCarstvoBtn)
         authorizationLayout.add_widget(lukomoreBtn)
         authorizationLayout.add_widget(morskayaDergavaBtn)
         authorizationLayout.add_widget(shamahanBtn)
+        authorizationLayout.add_widget(Widget())
+        authorizationLayout.add_widget(Widget())
+        authorizationLayout.add_widget(Widget())
+        authorizationLayout.add_widget(Widget())
+        authorizationLayout.add_widget(Widget())
+        authorizationLayout.add_widget(Widget())
+        authorizationLayout.add_widget(Widget())
         authorizationLayout.add_widget(adminBtn)
-        self.add_widget(authorizationLayout)
+        authorizationLayout.add_widget(Widget())
+        authorizationLayout.add_widget(Widget())
+        authorizationLayout.add_widget(Widget())
+        authorizationLayout.add_widget(Widget())
+        authorizationLayout.add_widget(Widget())
+        authorizationLayout.add_widget(Widget())
+        authorizationLayout.add_widget(Widget())
+        fonLayout.add_widget(authorizationLayout)
+
+        self.add_widget(fonLayout)
 
     def login(self, name):
         self.request.clientCallback()
@@ -281,9 +342,11 @@ class Request():
         if allSettings['isAllRight'] == 'restartNow':
             self.restart()
         if allSettings['isAllRight'] == 'False':
-            self.settings.question = allSettings['question']
-            self.updateAnswerLbl()
             self.settings.round = allSettings['round']
+            self.settings.numberOfQuestion = allSettings['numberOfQuestion']
+            self.settings.question = allSettings['question']
+            self.settings.questionAddition = allSettings['addition']
+            self.updateAnswerLbl()
             if self.settings.round == 'final':
                 self.myScreenmanager.current = 'Final'          
             else:
@@ -311,6 +374,8 @@ class MySettings(object):
         self.round = 'zero'
         self.IP_Adress = 'http://localhost:8080'
         self.question = ''
+        self.questionAddition = ''
+        self.numberOfQuestion = ''
         self.votingResult = {'zero_yes':0, 'zero_no':0}
         if self.store.exists('IP'):
             self.IP_Adress = self.store.get('IP')['data']
@@ -328,7 +393,6 @@ class RoundedWidget(Widget):
         with self.canvas.before:    
             Color(rgba=background_color)
             self.rect = RoundedRectangle(pos=self.pos, size=self.size, radius=[20, ])
-
         self.bind(pos=self.update_rect, size=self.update_rect)
 
     def update_rect(self, *args):
@@ -358,14 +422,14 @@ class Waiting(Screen):
             font_size = 28)
         colsTwoLayout.add_widget(label)
         colsTwoLayout.add_widget(Widget())
-        waitBtn = RoundedFlatButton(
+        self.waitBtn = RoundedFlatButton(
             text='[color=D7F5FF][b]ПРИСТУПИТЬ К ГОЛОСОВАНИЮ[/b][/color]', 
             on_press=self.imReady, 
             markup = True, 
             font_size = 24,
             background_color=[.47, .69, 1, 1],
             background_normal = '')  
-        colsTwoLayout.add_widget(waitBtn)
+        colsTwoLayout.add_widget(self.waitBtn)
         colsTwoLayout.add_widget(Widget())
         colsTwoLayout.add_widget(Widget())
         colsThreeLayout = BoxLayout(orientation='vertical', size_hint=(.25, 1))
@@ -380,6 +444,7 @@ class Waiting(Screen):
 
     def imReady(self, *args):
         requests.get(self.settings.IP_Adress+'/authorization/'+self.settings.clientCoutnry)
+        self.waitBtn.text = '[color=D7F5FF][b]ОЖИДАНИЕ ИГРОКОВ[/b][/color]'
 
     def updateBlazonImg(self, *args):
         self.blazonImg.source = self.settings.clientCoutnry + '.png'
@@ -389,53 +454,101 @@ class Answer(Screen):
     def __init__(self, **kwargs):
         super(Answer, self).__init__(**kwargs)
         self.settings = kwargs['settings']
+        self.listOfWitgetsOnRightCol = []
         fonLayout = FloatLayout()
         fonAnswer = Image(source='fonAnswer.png', allow_stretch = True)	
         answerLayout = BoxLayout(orientation='horizontal')
         colsOneLayout = BoxLayout(orientation='vertical', size_hint=(.69, 1))
-        rowsOneInColsOneLayout = BoxLayout(orientation='horizontal')
-        self.blazonImg = Image(source='riba_kit.png', allow_stretch = True, size_hint=(.33, 1))
-        self.questionLbl = Label(text='ВОПРОС', size_hint=(.67, 1), markup = True, font_size = 28, text_size=self.size)
-
+        rowsOneInColsOneLayout = BoxLayout(orientation='horizontal', size_hint=(1, .5))
+        self.blazonImg = Image(source='riba_kit.png', allow_stretch = True, size_hint=(.4, 1))
+        self.questionLbl = Label(text='ВОПРОС', size_hint=(.6, 1), markup = True, font_size = 28, halign='left', valign='center')
+        self.questionLbl.bind(size=self.questionLbl.setter('text_size'))
         rowsOneInColsOneLayout.add_widget(self.blazonImg)
-#        rowsOneInColsOneLayout.add_widget(self.questionLbl)
-        rowsOneInColsOneLayout.add_widget(Button(size_hint=(.67, 1)))
-
+        rowsOneInColsOneLayout.add_widget(self.questionLbl)
         colsOneLayout.add_widget(rowsOneInColsOneLayout)
-        rowsTwoInColsOneLayout = BoxLayout()
-        colsTwoLayout = BoxLayout(orientation='vertical', size_hint=(.31, 1))
-        colsTwoLayout.add_widget(Button())
+
+        rowsTwoInColsOneLayout = BoxLayout(orientation='horizontal', size_hint=(1, .3))
+        btnYes = RoundedFlatButton(
+            on_press = self.answerYes,
+            text='[color=D7F5FF][b]ЗА[/b][/color]', 
+            markup = True, 
+            font_size = 24,
+            size_hint=(.7, .5),
+            background_color=[.47, .69, 1, 1],
+            background_normal = '')
+        btnNo = RoundedFlatButton(
+            on_press = self.answerNo,
+            text='[color=D7F5FF][b]ПРОТИВ[/b][/color]', 
+            markup = True, 
+            font_size = 24,
+            size_hint=(.7, .5),
+            background_color=[.47, .69, 1, 1],
+            background_normal = '')
+        rowsTwoInColsOneLayout.add_widget(Widget(size_hint=(.2, 1)))
+        rowsTwoInColsOneLayout.add_widget(btnYes)
+        rowsTwoInColsOneLayout.add_widget(Widget(size_hint=(.1, 1)))
+        rowsTwoInColsOneLayout.add_widget(btnNo)
+        rowsTwoInColsOneLayout.add_widget(Widget(size_hint=(.2, 1)))
         colsOneLayout.add_widget(rowsTwoInColsOneLayout)
-        btnLayout = BoxLayout(spacing = 20)
-        btnYes = Button(text='YES', on_press = self.answerYes)
-        btnNo = Button(text='NO', on_press = self.answerNo)
-        btnLayout.add_widget(btnYes)
-        btnLayout.add_widget(btnNo)
+        colsOneLayout.add_widget(Widget(size_hint=(1, .2)))
+        self.colsTwoLayout = BoxLayout(orientation='vertical', size_hint=(.31, 1), spacing = 5)
+#        colsTwoLayout.add_widget(self.getWitgetForRightCol('numberOfQuestion', 'decision', 'question', 'result'))
+#        colsTwoLayout.add_widget(Button())
+
+#        btnLayout = BoxLayout(spacing = 20)
+#        btnYes = Button(text='YES', on_press = self.answerYes)
+#        btnNo = Button(text='NO', on_press = self.answerNo)
+#        btnLayout.add_widget(btnYes)
+#        btnLayout.add_widget(btnNo)
 #        answerLayout.add_widget(self.questionLbl)
 #        answerLayout.add_widget(btnLayout)
+
         answerLayout.add_widget(colsOneLayout)
-        answerLayout.add_widget(colsTwoLayout)
+        answerLayout.add_widget(Widget(size_hint=(.05, 1)))
+        answerLayout.add_widget(self.colsTwoLayout)
         fonLayout.add_widget(fonAnswer)
         fonLayout.add_widget(answerLayout)
+        self.bind(on_pre_enter=self.updateColsTwo)
         self.add_widget(fonLayout)
 
+    def updateColsTwo(self, *args):
+#тут нужно дописать. Главное понять, как проще получиь доступ к виджетам, 
+#которые я передаю через функцию генерации виджета. Сейчас все в списках, и это не особо удобно
+        self.listOfWitgetsOnRightCol.append(self.getWitgetForRightCol(self.settings.numberOfQuestion, ' ', self.settings.question, 'Обсуждается'))
+        self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1])
+
+
+#ЭТО НУЖНО ДОДЕЛАТЬ
+
+    def getWitgetForRightCol(self, numberOfQuestion, decision, question, result):
+        col = '[color=D9FFFF]'
+        colClose = '[/color]'
+        bs = '[b]'
+        bc = '[/b]'
+        mainLayout = BoxLayout(orientation='vertical', size_hint=(1, .2))
+        rowOneLbl = Label(markup = True, font_size = 18, halign='left', valign='center')
+        rowOneLbl.text = col + bs + numberOfQuestion + decision + bc + colClose
+        rowOneLbl.bind(size=rowOneLbl.setter('text_size'))
+        rowTwoLbl = Label(markup = True, font_size = 16, halign='left', valign='center')
+        rowTwoLbl.text = col + question + colClose
+        rowTwoLbl.bind(size=rowTwoLbl.setter('text_size'))
+        rowThreeLbl = Label(markup = True, font_size = 14, halign='left', valign='center')
+        rowThreeLbl.text = col + result + colClose
+        rowThreeLbl.bind(size=rowThreeLbl.setter('text_size'))
+
+        mainLayout.add_widget(rowOneLbl)
+        mainLayout.add_widget(rowTwoLbl)
+        mainLayout.add_widget(rowThreeLbl)
+        return mainLayout, rowOneLbl, rowThreeLbl
+
     def updateLbl(self, *args):
-        numberOfRound = str(0)
-        if self.settings.round == 'zero':
-            numberOfRound = str(0)
-        if self.settings.round == 'one':
-            numberOfRound = str(1)
-        if self.settings.round == 'two':
-            numberOfRound = str(2)
-        if self.settings.round == 'three':
-            numberOfRound = str(3)
-        if self.settings.round == 'four':
-            numberOfRound = str(4)
-        if self.settings.round == 'five':
-            numberOfRound = str(5)
-        if self.settings.round == 'final':
-            numberOfRound = str(6)
-        self.questionLbl.text = '[color=8B452D][b]Вопрос '+numberOfRound+'[/b][/color]\n[color=7F635D]'+self.settings.question+'[/color]'
+        colOneBold = '[color=8B452D][b]'
+        colOneBoldClose = '[/b][/color]'
+        colTwo = '\n[color=7F635D]'
+        colTrhee = '\n[color=A6A8B4]'
+        colClose = '[/color]'
+        self.questionLbl.text = colOneBold + self.settings.numberOfQuestion + colOneBoldClose + colTwo + self.settings.question + colClose + colTrhee + self.settings.questionAddition + colClose
+
 
     def answerYes(self, *args):
             requests.get(self.settings.IP_Adress+'/answer/'+self.settings.round+'/'+self.settings.clientCoutnry+'/yes')
@@ -473,4 +586,4 @@ class Final(Screen):
 
 
 if __name__ == "__main__":
-    voteMaser().run()
+    VoteMaser().run()
