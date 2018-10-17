@@ -371,6 +371,8 @@ class MySettings(object):
     def __init__(self, *args):
         self.store = DictStore('user.dat')
         self.clientCoutnry = 'notSpecified'
+#нужно додумать, как определять предыдущий раунд не системой ифов
+        self.previousRound = ''
         self.round = 'zero'
         self.IP_Adress = 'http://localhost:8080'
         self.question = ''
@@ -518,10 +520,13 @@ class Answer(Screen):
 
     def updateColsTwo(self, *args):
 #тут нужно дописать. Главное понять, как проще получиь доступ к виджетам, 
-#которые я передаю через функцию генерации виджета. Сейчас все в списках, и это не особо удобно
-#        newWidget, rowOneLbl, rowThreeLbl = self.getWitgetForRightCol(self.settings.numberOfQuestion, ' ', self.settings.question, 'Обсуждается')
-        self.listOfWitgetsOnRightCol.append(self.getWitgetForRightCol(self.settings.numberOfQuestion, ' ', self.settings.question, 'Обсуждается'))
-        self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1][0])
+#которые я передаю через функцию генерации виджета. Сейчас все в списках, и это не особо удобно\
+#Переписал, теперь эти виджеты в классе. Допилить, чтобы работало. 
+
+#        self.listOfWitgetsOnRightCol.append(self.getWitgetForRightCol(self.settings.numberOfQuestion, ' ', self.settings.question, 'Обсуждается'))
+        
+        self.listOfWitgetsOnRightCol.append(WitgetForRightCol(numberOfQuestion=self.settings.numberOfQuestion, question=self.settings.question))
+        self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1])
 #        try:
 #            self.listOfWitgetsOnRightCol[-2][1].text = 
 #        except:
@@ -529,26 +534,26 @@ class Answer(Screen):
 
 
 
-    def getWitgetForRightCol(self, numberOfQuestion, decision, question, result):
-        col = '[color=D9FFFF]'
-        colClose = '[/color]'
-        bs = '[b]'
-        bc = '[/b]'
-        mainLayout = BoxLayout(orientation='vertical')
-        rowOneLbl = Label(markup = True, font_size = 18, halign='left', valign='center', size_hint=(1, .25))
-        rowOneLbl.text = col + bs + numberOfQuestion + decision + bc + colClose
-        rowOneLbl.bind(size=rowOneLbl.setter('text_size'))
-        rowTwoLbl = Label(markup = True, font_size = 16, halign='left', valign='center', size_hint=(1, .5))
-        rowTwoLbl.text = col + question + colClose
-        rowTwoLbl.bind(size=rowTwoLbl.setter('text_size'))
-        rowThreeLbl = Label(markup = True, font_size = 14, halign='left', valign='center', size_hint=(1, .25))
-        rowThreeLbl.text = col + result + colClose
-        rowThreeLbl.bind(size=rowThreeLbl.setter('text_size'))
-
-        mainLayout.add_widget(rowOneLbl)
-        mainLayout.add_widget(rowTwoLbl)
-        mainLayout.add_widget(rowThreeLbl)
-        return mainLayout, rowOneLbl, rowThreeLbl
+#    def getWitgetForRightCol(self, numberOfQuestion, decision, question, result):
+#        col = '[color=D9FFFF]'
+##        colClose = '[/color]'
+#        bs = '[b]'
+#        bc = '[/b]'
+#        mainLayout = BoxLayout(orientation='vertical')
+#        rowOneLbl = Label(markup = True, font_size = 18, halign='left', valign='center', size_hint=(1, .25))
+#        rowOneLbl.text = col + bs + numberOfQuestion + decision + bc + colClose
+#        rowOneLbl.bind(size=rowOneLbl.setter('text_size'))
+#        rowTwoLbl = Label(markup = True, font_size = 16, halign='left', valign='center', size_hint=(1, .5))
+#        rowTwoLbl.text = col + question + colClose
+#        rowTwoLbl.bind(size=rowTwoLbl.setter('text_size'))
+#        rowThreeLbl = Label(markup = True, font_size = 14, halign='left', valign='center', size_hint=(1, .25))
+#        rowThreeLbl.text = col + result + colClose
+#        rowThreeLbl.bind(size=rowThreeLbl.setter('text_size'))
+#
+#        mainLayout.add_widget(rowOneLbl)
+#        mainLayout.add_widget(rowTwoLbl)
+#        mainLayout.add_widget(rowThreeLbl)
+#        return mainLayout, rowOneLbl, rowThreeLbl
 
     def updateLbl(self, *args):
         colOneBold = '[color=8B452D][b]'
@@ -558,7 +563,6 @@ class Answer(Screen):
         colClose = '[/color]'
         self.questionLbl.text = colOneBold + self.settings.numberOfQuestion + colOneBoldClose + colTwo + self.settings.question + colClose + colTrhee + self.settings.questionAddition + colClose
 
-
     def answerYes(self, *args):
             requests.get(self.settings.IP_Adress+'/answer/'+self.settings.round+'/'+self.settings.clientCoutnry+'/yes')
             self.manager.current = 'Result'
@@ -566,6 +570,29 @@ class Answer(Screen):
     def answerNo(self, *args):
             requests.get(self.settings.IP_Adress+'/answer/'+self.settings.round+'/'+self.settings.clientCoutnry+'/no')
             self.manager.current = 'Result'
+
+
+class WitgetForRightCol(Widget):
+    def __init__(self, numberOfQuestion, question, **kwargs):
+        super(WitgetForRightCol, self).__init__(**kwargs)
+        result  = 'Обсуждается'               
+        col = '[color=D9FFFF]'
+        colClose = '[/color]'
+        bs = '[b]'
+        bc = '[/b]'
+        mainLayout = BoxLayout(orientation='vertical')
+        rowOneLbl = Label(markup = True, font_size = 18, halign='left', valign='center', size_hint=(1, .25))
+        rowOneLbl.text = col + bs + numberOfQuestion + bc + colClose
+        rowOneLbl.bind(size=rowOneLbl.setter('text_size'))
+        rowTwoLbl = Label(markup = True, font_size = 16, halign='left', valign='center', size_hint=(1, .5))
+        rowTwoLbl.text = col + question + colClose
+        rowTwoLbl.bind(size=rowTwoLbl.setter('text_size'))
+        rowThreeLbl = Label(markup = True, font_size = 14, halign='left', valign='center', size_hint=(1, .25))
+        rowThreeLbl.text = col + result + colClose
+        rowThreeLbl.bind(size=rowThreeLbl.setter('text_size'))
+        mainLayout.add_widget(rowOneLbl)
+        mainLayout.add_widget(rowTwoLbl)
+        mainLayout.add_widget(rowThreeLbl)
 
 
 class Result(Screen):
