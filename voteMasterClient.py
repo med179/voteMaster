@@ -342,6 +342,7 @@ class Request():
         if allSettings['isAllRight'] == 'restartNow':
             self.restart()
         if allSettings['isAllRight'] == 'False':
+            self.settings.previousRound = self.settings.round
             self.settings.round = allSettings['round']
             self.settings.numberOfQuestion = allSettings['numberOfQuestion']
             self.settings.question = allSettings['question']
@@ -524,10 +525,13 @@ class Answer(Screen):
 #Переписал, теперь эти виджеты в классе. Допилить, чтобы работало. 
 
 #        self.listOfWitgetsOnRightCol.append(self.getWitgetForRightCol(self.settings.numberOfQuestion, ' ', self.settings.question, 'Обсуждается'))
-        
-        self.listOfWitgetsOnRightCol.append(WitgetForRightCol(numberOfQuestion=self.settings.numberOfQuestion, question=self.settings.question))
-        self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1])
-#        try:
+        if self.settings.round == 'one':
+            self.listOfWitgetsOnRightCol.append(WitgetForRightCol(numberOfQuestion=self.settings.numberOfQuestion, question=self.settings.question))
+            self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1])
+        else:
+            self.listOfWitgetsOnRightCol[-1].rowThreeLbl.text = '[color=D9FFFF]ЗА - ' + str(self.settings.votingResult[self.settings.round+'_yes']) + ', ПРОТИВ - ' + str(self.settings.votingResult[self.settings.round+'_no']) + '[/color]'
+
+# try:
 #            self.listOfWitgetsOnRightCol[-2][1].text = 
 #        except:
 #            print('ERROR')
@@ -587,12 +591,12 @@ class WitgetForRightCol(Widget):
         rowTwoLbl = Label(markup = True, font_size = 16, halign='left', valign='center', size_hint=(1, .5))
         rowTwoLbl.text = col + question + colClose
         rowTwoLbl.bind(size=rowTwoLbl.setter('text_size'))
-        rowThreeLbl = Label(markup = True, font_size = 14, halign='left', valign='center', size_hint=(1, .25))
-        rowThreeLbl.text = col + result + colClose
-        rowThreeLbl.bind(size=rowThreeLbl.setter('text_size'))
+        self.rowThreeLbl = Label(markup = True, font_size = 14, halign='left', valign='center', size_hint=(1, .25))
+        self.rowThreeLbl.text = col + result + colClose
+        self.rowThreeLbl.bind(size=self.rowThreeLbl.setter('text_size'))
         mainLayout.add_widget(rowOneLbl)
         mainLayout.add_widget(rowTwoLbl)
-        mainLayout.add_widget(rowThreeLbl)
+        mainLayout.add_widget(self.rowThreeLbl)
 
 
 class Result(Screen):
@@ -610,7 +614,6 @@ class Result(Screen):
         rowsOneInColsOneLayout.add_widget(self.blazonImg)
         rowsOneInColsOneLayout.add_widget(self.questionLbl)
         colsOneLayout.add_widget(rowsOneInColsOneLayout)
-
         rowsTwoInColsOneLayout = BoxLayout(orientation='horizontal', size_hint=(1, .3))
         self.ansYes = Label(
             text='[color=00642F][b]ЗА[/b][/color]', 
