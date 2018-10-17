@@ -13,7 +13,7 @@ question = {
     'three':'Приостановление членства в Организации Объединенных сказочных Наций Кощеева царства', 
     'four':'Введение эмбарго на мертвую воду для Кощеева царства', 
     'five':'Создание бесполетной зоны над Кощеевым царством'}
-votingResult = {'zero_yes':0, 'zero_no':0, 'one_yes':0, 'one_no':0, 'two_yes':0, 'two_no':0, 'three_yes':0, 'three_no':0, 'four_yes':0, 'four_no':0, 'five_yes':0, 'five_no':0}
+votingResult = {'zero_yes':0, 'zero_no':0, 'one_yes':0, 'one_no':0, 'two_yes':0, 'two_no':0, 'three_yes':0, 'three_no':0, 'four_yes':0, 'four_no':0, 'five_yes':0, 'five_no':0, 'final_yes':0, 'final_no':0}
 statusVote = {'round':'zero'}
 whoHasAlreadyRestarted = {'riba_kit':'alreadyRestarted', 'tridevCarstvo':'alreadyRestarted', 'lukomore':'alreadyRestarted', 'morskayaDergava':'alreadyRestarted', 'shamahan':'alreadyRestarted'}
 
@@ -33,6 +33,7 @@ def allSettings(round, name):
 
     global whoHasAlreadyRestarted
     returnToClient = {'isAllRight':'False'}
+    returnToClient['question'] = ' '
     returnToClient['addition'] = ' '
     returnToClient['numberOfQuestion'] = ' '
     if whoHasAlreadyRestarted[name] == 'heIsNotRestarted':
@@ -45,6 +46,7 @@ def allSettings(round, name):
     elif round == 'final':            
         returnToClient = votingResult
         returnToClient['isAllRight'] = 'True'
+        returnToClient['round'] = 'final'
         return returnToClient
     else:
         if round == 'zero':

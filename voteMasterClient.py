@@ -378,7 +378,7 @@ class MySettings(object):
         self.question = ''
         self.questionAddition = ''
         self.numberOfQuestion = ''
-        self.votingResult = {'zero_yes':0, 'zero_no':0}
+        self.votingResult = {'zero_yes':0, 'zero_no':0, 'final_yes':0, 'final_no':0}
         if self.store.exists('IP'):
             self.IP_Adress = self.store.get('IP')['data']
 
@@ -624,8 +624,8 @@ class Result(Screen):
         self.blazonImg.source = self.settings.clientCoutnry + '.png'
 
     def updateLbl(self, *args):
-        self.ansYes.text = '[color=00642F][b]ЗА  ' + str(self.settings.votingResult[self.settings.round+'_yes']) + ' [/b][/color]'
-        self.ansNo.text = '[color=FD0302][b]' + str(self.settings.votingResult[self.settings.round+'_no']) + ' ПРОТИВ[/b][/color]'
+        self.ansYes.text = '[color=00642F][b]ЗА  [size=48]' + str(self.settings.votingResult[self.settings.round+'_yes']) + '[/size] [/b][/color]'
+        self.ansNo.text = '[color=FD0302][b][size=48]' + str(self.settings.votingResult[self.settings.round+'_no']) + '[/size] ПРОТИВ[/b][/color]'
     
 
 class Final(Screen):
@@ -635,42 +635,61 @@ class Final(Screen):
         fonLayout = FloatLayout()
         authFon = Image(source='authFon.png', allow_stretch = True)
         fonLayout.add_widget(authFon)
-        finalScreen = GridLayout(spacing = 10, cols=5)
-
-        self.roundOne = Label()
-        self.roundTwo = Label()
-        self.roundThree = Label()
-        self.roundFour = Label()
-        self.roundFive = Label()
-
+        finalScreen = GridLayout(spacing = 1, cols=5)
+        self.roundOne = Label(markup = True, font_size = 16)
+        self.roundTwo = Label(markup = True, font_size = 16)
+        self.roundThree = Label(markup = True, font_size = 16)
+        self.roundFour = Label(markup = True, font_size = 16)
+        self.roundFive = Label(markup = True, font_size = 16)
         finalScreen.add_widget(Widget())
         finalScreen.add_widget(Widget())
         finalScreen.add_widget(Label(text='[color=C8E3FE][b]Подведение итогов[/b][/color]', markup = True, font_size = 28))
         finalScreen.add_widget(Widget())
         finalScreen.add_widget(Widget())    
         finalScreen.add_widget(self.roundOne)
-        finalScreen.add_widget(self.roundTwo)
-        finalScreen.add_widget(self.roundThree)
-        finalScreen.add_widget(self.roundFour)
-        finalScreen.add_widget(self.roundFive)
+        finalScreen.add_widget(Widget())
 
+        finalScreen.add_widget(self.roundTwo)
+        finalScreen.add_widget(Widget())
+
+        finalScreen.add_widget(self.roundThree)
+
+        finalScreen.add_widget(Widget())
+
+        finalScreen.add_widget(self.roundFour)
+        finalScreen.add_widget(Widget())
+
+        finalScreen.add_widget(self.roundFive)
+        finalScreen.add_widget(Widget())
+
+        finalScreen.add_widget(Widget())   
+        finalScreen.add_widget(Widget())
+        finalScreen.add_widget(Widget())   
+        finalScreen.add_widget(Widget()) 
+        finalScreen.add_widget(Widget()) 
+
+        finalScreen.add_widget(Widget()) 
+        finalScreen.add_widget(Widget()) 
+        finalScreen.add_widget(Widget()) 
+        finalScreen.add_widget(Widget()) 
         fonLayout.add_widget(finalScreen)
+        self.bind(on_pre_enter=self.updateFinalLabels)
         self.add_widget(fonLayout)   
 
     def updateFinalLabels(self, *args):
-        col = '[color=8B452D]'
-        colClose = '[/color]'
+        col = '[color=D9FFFF][b]'
+        colClose = '[/b][/color]'
         getQuestions = requests.get(self.settings.IP_Adress+'/dictAllQuestions')
         questionsJson = getQuestions.json()
         self.roundOne.text = col + questionsJson['one'] + colClose + self.resultInRound('one')
         self.roundOne.bind(size=self.roundOne.setter('text_size'))
-        self.roundTwo.text = col + questionsJson['Two'] + colClose + self.resultInRound('Two')
+        self.roundTwo.text = col + questionsJson['two'] + colClose + self.resultInRound('two')
         self.roundTwo.bind(size=self.roundTwo.setter('text_size'))
-        self.roundThree.text = col + questionsJson['Three'] + colClose + self.resultInRound('Three')
+        self.roundThree.text = col + questionsJson['three'] + colClose + self.resultInRound('three')
         self.roundThree.bind(size=self.roundThree.setter('text_size'))
-        self.roundFour.text = col + questionsJson['Four'] + colClose + self.resultInRound('Four')
+        self.roundFour.text = col + questionsJson['four'] + colClose + self.resultInRound('four')
         self.roundFour.bind(size=self.roundFour.setter('text_size'))
-        self.roundFive.text = col + questionsJson['Five'] + colClose + self.resultInRound('Five')
+        self.roundFive.text = col + questionsJson['five'] + colClose + self.resultInRound('five')
         self.roundFive.bind(size=self.roundFive.setter('text_size'))
         
 
