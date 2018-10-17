@@ -372,7 +372,6 @@ class MySettings(object):
     def __init__(self, *args):
         self.store = DictStore('user.dat')
         self.clientCoutnry = 'notSpecified'
-#нужно додумать, как определять предыдущий раунд не системой ифов
         self.previousRound = ''
         self.round = 'zero'
         self.IP_Adress = 'http://localhost:8080'
@@ -496,17 +495,6 @@ class Answer(Screen):
         colsOneLayout.add_widget(rowsTwoInColsOneLayout)
         colsOneLayout.add_widget(Widget(size_hint=(1, .2)))
         self.colsTwoLayout = GridLayout(rows=7, size_hint=(.31, 1), row_force_default=True, row_default_height=150)
-#        colsTwoLayout.add_widget(self.getWitgetForRightCol('numberOfQuestion', 'decision', 'question', 'result'))
-#        colsTwoLayout.add_widget(Button())
-
-#        btnLayout = BoxLayout(spacing = 20)
-#        btnYes = Button(text='YES', on_press = self.answerYes)
-#        btnNo = Button(text='NO', on_press = self.answerNo)
-#        btnLayout.add_widget(btnYes)
-#        btnLayout.add_widget(btnNo)
-#        answerLayout.add_widget(self.questionLbl)
-#        answerLayout.add_widget(btnLayout)
-
         answerLayout.add_widget(colsOneLayout)
         answerLayout.add_widget(Widget(size_hint=(.05, 1)))
         answerLayout.add_widget(self.colsTwoLayout)
@@ -520,11 +508,6 @@ class Answer(Screen):
         self.blazonImg.source = self.settings.clientCoutnry + '.png'
 
     def updateColsTwo(self, *args):
-#тут нужно дописать. Главное понять, как проще получиь доступ к виджетам, 
-#которые я передаю через функцию генерации виджета. Сейчас все в списках, и это не особо удобно\
-#Переписал, теперь эти виджеты в классе. Допилить, чтобы работало. 
-
-#        self.listOfWitgetsOnRightCol.append(self.getWitgetForRightCol(self.settings.numberOfQuestion, ' ', self.settings.question, 'Обсуждается'))
         if self.settings.round == 'one':
             self.listOfWitgetsOnRightCol.append(WitgetForRightCol(numberOfQuestion=self.settings.numberOfQuestion, question=self.settings.question))
             self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1].mainLayout)
@@ -533,34 +516,6 @@ class Answer(Screen):
             self.listOfWitgetsOnRightCol[-1].rowThreeLbl.text = '[color=D9FFFF]ЗА - ' + str(self.settings.votingResult[self.settings.previousRound +'_yes']) + ', ПРОТИВ - ' + str(self.settings.votingResult[self.settings.previousRound+'_no']) + '[/color]'
             self.listOfWitgetsOnRightCol.append(WitgetForRightCol(numberOfQuestion=self.settings.numberOfQuestion, question=self.settings.question))          
             self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1].mainLayout)
-
-# try:
-#            self.listOfWitgetsOnRightCol[-2][1].text = 
-#        except:
-#            print('ERROR')
-
-
-
-#    def getWitgetForRightCol(self, numberOfQuestion, decision, question, result):
-#        col = '[color=D9FFFF]'
-##        colClose = '[/color]'
-#        bs = '[b]'
-#        bc = '[/b]'
-#        mainLayout = BoxLayout(orientation='vertical')
-#        rowOneLbl = Label(markup = True, font_size = 18, halign='left', valign='center', size_hint=(1, .25))
-#        rowOneLbl.text = col + bs + numberOfQuestion + decision + bc + colClose
-#        rowOneLbl.bind(size=rowOneLbl.setter('text_size'))
-#        rowTwoLbl = Label(markup = True, font_size = 16, halign='left', valign='center', size_hint=(1, .5))
-#        rowTwoLbl.text = col + question + colClose
-#        rowTwoLbl.bind(size=rowTwoLbl.setter('text_size'))
-#        rowThreeLbl = Label(markup = True, font_size = 14, halign='left', valign='center', size_hint=(1, .25))
-#        rowThreeLbl.text = col + result + colClose
-#        rowThreeLbl.bind(size=rowThreeLbl.setter('text_size'))
-#
-#        mainLayout.add_widget(rowOneLbl)
-#        mainLayout.add_widget(rowTwoLbl)
-#        mainLayout.add_widget(rowThreeLbl)
-#        return mainLayout, rowOneLbl, rowThreeLbl
 
     def updateLbl(self, *args):
         colOneBold = '[color=8B452D][b]'
@@ -677,10 +632,56 @@ class Final(Screen):
     def __init__(self, **kwargs):
         super(Final, self).__init__(**kwargs)
         self.settings = kwargs['settings']
-        finalScreen = BoxLayout()
-        finalLbl = Label(text='FINAL')
-        finalScreen.add_widget(finalLbl)
-        self.add_widget(finalScreen)   
+        fonLayout = FloatLayout()
+        authFon = Image(source='authFon.png', allow_stretch = True)
+        fonLayout.add_widget(authFon)
+        finalScreen = GridLayout(spacing = 10, cols=5)
+
+        self.roundOne = Label()
+        self.roundTwo = Label()
+        self.roundThree = Label()
+        self.roundFour = Label()
+        self.roundFive = Label()
+
+        finalScreen.add_widget(Widget())
+        finalScreen.add_widget(Widget())
+        finalScreen.add_widget(Label(text='[color=C8E3FE][b]Подведение итогов[/b][/color]', markup = True, font_size = 28))
+        finalScreen.add_widget(Widget())
+        finalScreen.add_widget(Widget())    
+        finalScreen.add_widget(self.roundOne)
+        finalScreen.add_widget(self.roundTwo)
+        finalScreen.add_widget(self.roundThree)
+        finalScreen.add_widget(self.roundFour)
+        finalScreen.add_widget(self.roundFive)
+
+        fonLayout.add_widget(finalScreen)
+        self.add_widget(fonLayout)   
+
+    def updateFinalLabels(self, *args):
+        col = '[color=8B452D]'
+        colClose = '[/color]'
+        getQuestions = requests.get(self.settings.IP_Adress+'/dictAllQuestions')
+        questionsJson = getQuestions.json()
+        self.roundOne.text = col + questionsJson['one'] + colClose + self.resultInRound('one')
+        self.roundOne.bind(size=self.roundOne.setter('text_size'))
+        self.roundTwo.text = col + questionsJson['Two'] + colClose + self.resultInRound('Two')
+        self.roundTwo.bind(size=self.roundTwo.setter('text_size'))
+        self.roundThree.text = col + questionsJson['Three'] + colClose + self.resultInRound('Three')
+        self.roundThree.bind(size=self.roundThree.setter('text_size'))
+        self.roundFour.text = col + questionsJson['Four'] + colClose + self.resultInRound('Four')
+        self.roundFour.bind(size=self.roundFour.setter('text_size'))
+        self.roundFive.text = col + questionsJson['Five'] + colClose + self.resultInRound('Five')
+        self.roundFive.bind(size=self.roundFive.setter('text_size'))
+        
+
+    def resultInRound(self, round, *args):
+        if self.settings.votingResult[round+'_yes'] < self.settings.votingResult[round+'_no']:
+            return '\n[color=FD0302][b]РЕШЕНИЕ ОТКЛОНЕНО[/b][/color]'
+        else:
+            return '\n[color=00642F][b]РЕШЕНИЕ ПРИНЯТО[/b][/color]'
+
+
+
 
 
 if __name__ == "__main__":

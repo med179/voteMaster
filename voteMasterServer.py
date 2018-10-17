@@ -6,11 +6,7 @@ from bottle import route, run, template
 
 #список стран пользователей
 statusPlayers = {'riba_kit':'', 'tridevCarstvo':'', 'lukomore':'', 'morskayaDergava':'', 'shamahan':''}
-#question = {'one':'[color=8B452D][b]Вопрос 1[/b][/color]\n[color=7F635D]Отказ от серебряно-золотого международного валютного стандарта[/color]', 
-#    'two':'[color=8B452D][b]Вопрос 2[/b][/color]\n[color=7F635D]Использование территории Чудо-юдо рыбы Кита для размещения коалиционного флота[/color]', 
-#    'three':'[color=8B452D][b]Вопрос 3[/b][/color]\n[color=7F635D]Приостановление членства в Организации Объединенных сказочных Наций Кощеева царства[/color]', 
-#    'four':'[color=8B452D][b]Вопрос 4[/b][/color]\n[color=7F635D]Введение эмбарго на мертвую воду для Кощеева царства[/color]', 
-#    'five':'[color=8B452D][b]Вопрос 5[/b][/color]\n[color=7F635D]Создание бесполетной зоны над Кощеевым царством[/color]'}
+
 question = {
     'one':'Отказ от серебряно-золотого международного валютного стандарта', 
     'two':'Использование территории Чудо-юдо рыбы Кита для размещения коалиционного флота', 
@@ -25,6 +21,10 @@ whoHasAlreadyRestarted = {'riba_kit':'alreadyRestarted', 'tridevCarstvo':'alread
 @route('/test')
 def test():
     return 'True'
+
+@route('/dictAllQuestions')
+def dictAllQuestions():
+    return question
 
 @route('/allSettings/<round>/<name>')
 def allSettings(round, name):
