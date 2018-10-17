@@ -527,9 +527,12 @@ class Answer(Screen):
 #        self.listOfWitgetsOnRightCol.append(self.getWitgetForRightCol(self.settings.numberOfQuestion, ' ', self.settings.question, 'Обсуждается'))
         if self.settings.round == 'one':
             self.listOfWitgetsOnRightCol.append(WitgetForRightCol(numberOfQuestion=self.settings.numberOfQuestion, question=self.settings.question))
-            self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1])
+            self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1].mainLayout)
         else:
-            self.listOfWitgetsOnRightCol[-1].rowThreeLbl.text = '[color=D9FFFF]ЗА - ' + str(self.settings.votingResult[self.settings.round+'_yes']) + ', ПРОТИВ - ' + str(self.settings.votingResult[self.settings.round+'_no']) + '[/color]'
+            print self.settings.votingResult
+            self.listOfWitgetsOnRightCol[-1].rowThreeLbl.text = '[color=D9FFFF]ЗА - ' + str(self.settings.votingResult[self.settings.previousRound +'_yes']) + ', ПРОТИВ - ' + str(self.settings.votingResult[self.settings.previousRound+'_no']) + '[/color]'
+            self.listOfWitgetsOnRightCol.append(WitgetForRightCol(numberOfQuestion=self.settings.numberOfQuestion, question=self.settings.question))          
+            self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1].mainLayout)
 
 # try:
 #            self.listOfWitgetsOnRightCol[-2][1].text = 
@@ -584,7 +587,7 @@ class WitgetForRightCol(Widget):
         colClose = '[/color]'
         bs = '[b]'
         bc = '[/b]'
-        mainLayout = BoxLayout(orientation='vertical')
+        self.mainLayout = BoxLayout(orientation='vertical')
         rowOneLbl = Label(markup = True, font_size = 18, halign='left', valign='center', size_hint=(1, .25))
         rowOneLbl.text = col + bs + numberOfQuestion + bc + colClose
         rowOneLbl.bind(size=rowOneLbl.setter('text_size'))
@@ -594,15 +597,16 @@ class WitgetForRightCol(Widget):
         self.rowThreeLbl = Label(markup = True, font_size = 14, halign='left', valign='center', size_hint=(1, .25))
         self.rowThreeLbl.text = col + result + colClose
         self.rowThreeLbl.bind(size=self.rowThreeLbl.setter('text_size'))
-        mainLayout.add_widget(rowOneLbl)
-        mainLayout.add_widget(rowTwoLbl)
-        mainLayout.add_widget(self.rowThreeLbl)
+        self.mainLayout.add_widget(rowOneLbl)
+        self.mainLayout.add_widget(rowTwoLbl)
+        self.mainLayout.add_widget(self.rowThreeLbl)
 
 
 class Result(Screen):
     def __init__(self, **kwargs):
         super(Result, self).__init__(**kwargs)
         self.settings = kwargs['settings']
+        self.listOfWitgetsOnRightCol = []
         fonLayout = FloatLayout()
         fonResult = Image(source='fonResult.png', allow_stretch = True)	
         resultLayout = BoxLayout(orientation='horizontal')
@@ -634,19 +638,24 @@ class Result(Screen):
         colsOneLayout.add_widget(Widget(size_hint=(1, .2)))
         resultLayout.add_widget(colsOneLayout)
         resultLayout.add_widget(Widget(size_hint=(.05, 1)))
-        colsTwoLayout = GridLayout(rows=7, size_hint=(.31, 1), row_force_default=True, row_default_height=150)
-        resultLayout.add_widget(colsTwoLayout)
-
-#        self.ansYes = Label(text='0')
-#        self.ansNo = Label(text='0')
-#        result.add_widget(self.ansYes)
-#        result.add_widget(self.ansNo)
-
+        self.colsTwoLayout = GridLayout(rows=7, size_hint=(.31, 1), row_force_default=True, row_default_height=150)
+        resultLayout.add_widget(self.colsTwoLayout)
         fonLayout.add_widget(fonResult)
         fonLayout.add_widget(resultLayout)
         self.bind(on_pre_enter=self.updateBlazonImg)
         self.bind(on_pre_enter=self.updateQuestionLbl)
+        self.bind(on_pre_enter=self.updateColsTwo)
         self.add_widget(fonLayout)
+
+    def updateColsTwo(self, *args):
+        if self.settings.round == 'one':
+            self.listOfWitgetsOnRightCol.append(WitgetForRightCol(numberOfQuestion=self.settings.numberOfQuestion, question=self.settings.question))
+            self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1].mainLayout)
+        else:
+            print self.settings.votingResult
+            self.listOfWitgetsOnRightCol[-1].rowThreeLbl.text = '[color=D9FFFF]ЗА - ' + str(self.settings.votingResult[self.settings.previousRound +'_yes']) + ', ПРОТИВ - ' + str(self.settings.votingResult[self.settings.previousRound+'_no']) + '[/color]'
+            self.listOfWitgetsOnRightCol.append(WitgetForRightCol(numberOfQuestion=self.settings.numberOfQuestion, question=self.settings.question))          
+            self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1].mainLayout)
 
     def updateQuestionLbl(self, *args):
         colOneBold = '[color=8B452D][b]'
