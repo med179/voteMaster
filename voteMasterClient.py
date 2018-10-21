@@ -32,19 +32,19 @@ Config.set('graphics', 'height', 1200/divider)
 class VoteMaser(App):
     def build(self):
         myScreenmanager = ScreenManager()
-        settings = MySettings()
-        answer = Answer(name='Answer', settings=settings)
-        waiting = Waiting(name='Waiting', settings=settings)
-        admin = Admin(name='Admin', settings=settings)
-        adminPauseScreen = AdminPauseScreen(name='AdminPauseScreen', settings=settings)
-        result = Result(name='Result', settings=settings)
-        final = Final(name='Final', settings=settings)
-        request = Request(settings=settings, myScreenmanager=myScreenmanager, updateAnswerLbl=answer.updateLbl, updateResultLbl=result.updateLbl)
-        authorization = Authorization(name='Authorization', settings=settings, admin=admin, request=request)
-        enterNewIP = EnterNewIP(name='EnterNewIP', settings=settings)
-        testNewIP = TestNewIP(name='TestNewIP', settings=settings)
+        self.settings = MySettings()
+        self.answer = Answer(name='Answer', settings=self.settings)
+        waiting = Waiting(name='Waiting', settings=self.settings)
+        admin = Admin(name='Admin', settings=self.settings)
+        adminPauseScreen = AdminPauseScreen(name='AdminPauseScreen', settings=self.settings)
+        result = Result(name='Result', settings=self.settings)
+        final = Final(name='Final', settings=self.settings)
+        request = Request(settings=self.settings, myScreenmanager=myScreenmanager, updateAnswerLbl=self.answer.updateLbl, updateResultLbl=result.updateLbl)
+        authorization = Authorization(name='Authorization', settings=self.settings, admin=admin, request=request)
+        enterNewIP = EnterNewIP(name='EnterNewIP', settings=self.settings)
+        testNewIP = TestNewIP(name='TestNewIP', settings=self.settings)
         myScreenmanager.add_widget(authorization)
-        myScreenmanager.add_widget(answer)
+        myScreenmanager.add_widget(self.answer)
         myScreenmanager.add_widget(waiting)
         myScreenmanager.add_widget(admin) 
         myScreenmanager.add_widget(adminPauseScreen)
@@ -54,46 +54,72 @@ class VoteMaser(App):
         myScreenmanager.add_widget(testNewIP)
         #проверка, досупен ли сервер
         try:
-            testIP = requests.get(settings.IP_Adress + '/test')
+            testIP = requests.get(self.settings.IP_Adress + '/test')
         except:
             testIP = 'False'
         if testIP == 'False':
             myScreenmanager.current = 'EnterNewIP'
         else:
         #если доступен, проверяем, логинился ли уже этот игрок/получаем статусы всех игроков
-            if settings.store.exists('gameStatus'):
-                if settings.store.get('gameStatus')['data'] == 'gameIsOn':
-                    settings.clientCoutnry = settings.store.get('clientCoutnry')['data']
+            if self.settings.store.exists('gameStatus'):
+                if self.settings.store.get('gameStatus')['data'] == 'gameIsOn':
+                    self.settings.clientCoutnry = self.settings.store.get('clientCoutnry')['data']
                 #открываем нужный экран    
-                    getData = requests.get(settings.IP_Adress+'/authorization/admin')
+                    getData = requests.get(self.settings.IP_Adress+'/authorization/admin')
                     statusPlayers = getData.json()
-                    if statusPlayers[settings.clientCoutnry] == 'answerIsNotGiven':
-                        getRound = requests.get(settings.IP_Adress+'/status')
+                    if statusPlayers[self.settings.clientCoutnry] == 'answerIsNotGiven':
+                        getRound = requests.get(self.settings.IP_Adress+'/status')
                         rounsJson = getRound.json()
                         if rounsJson['round'] == 'one':
-                            settings.round = 'zero'
+                            self.settings.round = 'zero'
+                            self.settings.previousRound = 'zero'
                         if rounsJson['round'] == 'two':
-                            settings.round = 'one'
+                            self.settings.round = 'one'
+                            self.settings.previousRound = 'one'
                         if rounsJson['round'] == 'three':              
-                            settings.round = 'two'          
+                            self.settings.round = 'two'     
+                            self.settings.previousRound = 'two'     
                         if rounsJson['round'] == 'four':
-                            settings.round = 'three'
+                            self.settings.round = 'three'
+                            self.settings.previousRound = 'three'
                         if rounsJson['round'] == 'five':
-                            settings.round = 'four'   
+                            self.settings.round = 'four'   
+                            self.settings.previousRound = 'four' 
+                        self.updateSettings()
+                        self.addAnswerRightWitgets()
                         request.clientCallback()      
                         myScreenmanager.current = 'Answer'
-                    if statusPlayers[settings.clientCoutnry] == 'answerGiven':
-                        getRound = requests.get(settings.IP_Adress+'/status')
+                    if statusPlayers[self.settings.clientCoutnry] == 'answerGiven':
+                        getRound = requests.get(self.settings.IP_Adress+'/status')
                         rounsJson = getRound.json()
-                        settings.round = rounsJson['round']
+                        self.settings.round = rounsJson['round']
+                        self.updateSettings()
+                        self.addResultRightWitgets
                         request.clientCallback()
                         myScreenmanager.current = 'Result'
-                    if statusPlayers[settings.clientCoutnry] == 'final':
+                    if statusPlayers[self.settings.clientCoutnry] == 'final':
                         request.clientCallback()
                         myScreenmanager.current = 'Final'
             else:
                 myScreenmanager.current = 'Authorization'        
         return myScreenmanager
+
+    def addAnswerRightWitgets(self, *args):
+        listOfWitgetsOnRightCol = self.settings.store.get('listOfWitgetsOnRightCol')['data']
+        for i in range(len(listOfWitgetsOnRightCol)-1):
+            self.answer.colsTwoLayout.add_widget(listOfWitgetsOnRightCol[i].mainLayout)        
+
+    def addResultRightWitgets(self, *args):
+        listOfWitgetsOnRightCol = self.settings.store.get('listOfWitgetsOnRightCol')['data']
+        for i in range(len(listOfWitgetsOnRightCol)-1):
+            self.answer.colsTwoLayout.add_widget(listOfWitgetsOnRightCol[i].mainLayout)     
+
+    def updateSettings(self, *args):
+        response = requests.get(self.settings.IP_Adress+'/allSettings/' + self.settings.round + '/' + self.settings.clientCoutnry)
+        allSettings = response.json()
+        self.settings.numberOfQuestion = allSettings['numberOfQuestion']
+        self.settings.question = allSettings['question']
+        self.settings.questionAddition = allSettings['addition']
 
 
 class EnterNewIP(Screen):
@@ -101,15 +127,36 @@ class EnterNewIP(Screen):
         super(EnterNewIP, self).__init__(**kwargs)
         self.settings = kwargs['settings']
         self.newIP = ''
-        body = BoxLayout(orientation = 'vertical')
-        inputIP = Label(text='Server not found.\nEnter new IP, please')
-        self.textInput = TextInput(multiline = False)
+        fonLayout = FloatLayout()
+        fonEnterNewIP = Image(source='fonWait.png', allow_stretch = True)	
+        enterNewIPLayout = BoxLayout(orientation = 'horizontal')
+        colOne = BoxLayout(size_hint=[.25, 1])
+        colTwo = BoxLayout(orientation = 'vertical', size_hint=[.5, 1])
+        colThree = BoxLayout(size_hint=[.25, 1])
+       
+        inputIP = Label(text='[color=C8E3FE][b]Server not found.\nEnter new IP, please.[/b][/color]', markup = True, font_size = 28, size_hint=[1, .3])
+        self.textInput = TextInput(multiline = False, size_hint=[1, .05])
         self.textInput.bind(text=self.on_text)
-        sendNewIPBtn = Button(on_press=self.sendNewIP)
-        body.add_widget(inputIP)
-        body.add_widget(self.textInput)
-        body.add_widget(sendNewIPBtn)
-        self.add_widget(body)
+        sendNewIPBtn = RoundedFlatButton(
+            on_press=self.sendNewIP,
+            text='[color=D7F5FF][b]Test new IP[/b][/color]', 
+            markup = True, 
+            font_size = 24,
+            size_hint=[1, .2],
+            background_color=[.47, .69, 1, 1],
+            background_normal = '')
+
+        colTwo.add_widget(inputIP)
+        colTwo.add_widget(self.textInput)
+        colTwo.add_widget(Widget(size_hint=[1, .05]))
+        colTwo.add_widget(sendNewIPBtn)
+        colTwo.add_widget(Widget(size_hint=[1, .4]))
+        enterNewIPLayout.add_widget(colOne)
+        enterNewIPLayout.add_widget(colTwo)
+        enterNewIPLayout.add_widget(colThree)
+        fonLayout.add_widget(fonEnterNewIP)
+        fonLayout.add_widget(enterNewIPLayout)
+        self.add_widget(fonLayout)
 
     def on_text(self, instance, value):
         self.newIP = value
@@ -124,7 +171,7 @@ class TestNewIP(Screen):
     def __init__(self, **kwargs):
         super(TestNewIP, self).__init__(**kwargs)
         self.settings = kwargs['settings']
-        self.statusLbl = Label(text='Connection')
+        self.statusLbl = Label(text='Connection...')
         self.add_widget(self.statusLbl)
         self.bind(on_enter=self.testNewIP)
 
@@ -257,24 +304,90 @@ class Admin(Screen):
     def __init__(self, **kwargs):
         super(Admin, self).__init__(**kwargs)
         self.settings = kwargs['settings']
-        adminLayout = BoxLayout(orientation='vertical', spacing=10)
-        readyBtns = BoxLayout(orientation='horizontal', spacing=10)
-        self.riba_kitRdyLbl = Button(text='riba_kit', background_color=[1, 0, 0, 1])
-        self.tridevCarstvoRdyLbl = Button(text='tridevCarstvo', background_color=[1, 0, 0, 1])
-        self.lukomoreRdyLbl = Button(text='lukomore', background_color=[1, 0, 0, 1])
-        self.morskayaDergavaRdyLbl = Button(text='morskayaDergava', background_color=[1, 0, 0, 1])
-        self.shamahanRdyLbl = Button(text='shamahan', background_color=[1, 0, 0, 1])
-        readyBtns.add_widget(self.riba_kitRdyLbl)
-        readyBtns.add_widget(self.tridevCarstvoRdyLbl)
-        readyBtns.add_widget(self.lukomoreRdyLbl)
-        readyBtns.add_widget(self.morskayaDergavaRdyLbl)
-        readyBtns.add_widget(self.shamahanRdyLbl)
-        startBtn = Button(text='Start next round', size_hint=[.3, .3], on_press=self.changeStatusVote, background_color=[1, 0, 0, 1])
-        restartBtn = Button(text='Restart App', size_hint=[.3, .3], on_press=self.restartApp, background_color=[0, 0, 1, 1] )
-        adminLayout.add_widget(readyBtns)
-        adminLayout.add_widget(startBtn)
-        adminLayout.add_widget(restartBtn)
-        self.add_widget(adminLayout)
+        self.red = '[color=FD0302][b]'
+        self.green = '[color=00642F][b]'
+        fonLayout = FloatLayout()
+        adminFon = Image(source='adminFon.jpg', allow_stretch = True)
+        fonLayout.add_widget(adminFon)
+        adminLayout = BoxLayout(orientation='horizontal', spacing=10)
+        colOne = BoxLayout(orientation='vertical', spacing=10, size_hint=[.3, 1])
+        colTwo = BoxLayout(orientation='vertical', spacing=10, size_hint=[.3, 1])
+
+        riba_kitImg = Image(source='riba_kit.png', allow_stretch = True)
+        tridevCarstvoImg = Image(source='tridevCarstvo.png', allow_stretch = True)
+        lukomoreImg = Image(source='lukomore.png', allow_stretch = True)
+        morskayaDergavaImg = Image(source='morskayaDergava.png', allow_stretch = True)
+        shamahanImg  = Image(source='shamahan.png', allow_stretch = True)
+
+        self.riba_kitRdyLbl = Label(text=self.red+'Isn`t ready[/b][/color]', markup = True, font_size = 24)
+        self.tridevCarstvoRdyLbl = Label(text=self.red+'Isn`t ready[/b][/color]', markup = True, font_size = 24)
+        self.lukomoreRdyLbl = Label(text=self.red+'Isn`t ready[/b][/color]', markup = True, font_size = 24)
+        self.morskayaDergavaRdyLbl = Label(text=self.red+'Isn`t ready[/b][/color]', markup = True, font_size = 24)
+        self.shamahanRdyLbl = Label(text=self.red+'Isn`t ready[/b][/color]', markup = True, font_size = 24)
+
+
+        riba_kitBox = BoxLayout(orientation='horizontal', spacing=10)
+        tridevCarstvoBox = BoxLayout(orientation='horizontal', spacing=10)
+        lukomoreBox = BoxLayout(orientation='horizontal', spacing=10)
+        morskayaDergavaBox = BoxLayout(orientation='horizontal', spacing=10)
+        shamahanBox = BoxLayout(orientation='horizontal', spacing=10)
+
+        riba_kitBox.add_widget(riba_kitImg)
+        riba_kitBox.add_widget(self.riba_kitRdyLbl)
+
+        tridevCarstvoBox.add_widget(tridevCarstvoImg)
+        tridevCarstvoBox.add_widget(self.tridevCarstvoRdyLbl)
+
+        lukomoreBox.add_widget(lukomoreImg)
+        lukomoreBox.add_widget(self.lukomoreRdyLbl)
+
+        morskayaDergavaBox.add_widget(morskayaDergavaImg)
+        morskayaDergavaBox.add_widget(self.morskayaDergavaRdyLbl)
+
+        shamahanBox.add_widget(shamahanImg)
+        shamahanBox.add_widget(self.shamahanRdyLbl)
+
+        startBtn = RoundedFlatButton(
+            on_press=self.changeStatusVote,
+            text='[color=D7F5FF][b]Start next round[/b][/color]', 
+            markup = True, 
+            font_size = 24,
+            size_hint=[1, .3],
+            background_color=[.47, .69, 1, 1],
+            background_normal = '')
+
+
+        restartBtn = RoundedFlatButton(
+            on_press=self.restartApp,
+            text='[color=D7F5FF][b]Restart App[/b][/color]', 
+            markup = True, 
+            font_size = 24,
+            size_hint=[1, .3],
+            background_color=[.64, .2, .2, 1],
+            background_normal = '')
+
+        colOne.add_widget(Widget(size_hint=[1, .15]))
+        colOne.add_widget(riba_kitBox)
+        colOne.add_widget(tridevCarstvoBox)
+        colOne.add_widget(lukomoreBox)
+        colOne.add_widget(morskayaDergavaBox)
+        colOne.add_widget(shamahanBox)
+        colOne.add_widget(Widget(size_hint=[1, .15]))
+
+        colTwo.add_widget(Widget(size_hint=[1, .3]))
+        colTwo.add_widget(startBtn)
+        colTwo.add_widget(Widget(size_hint=[1, .2]))
+        colTwo.add_widget(restartBtn)
+        colTwo.add_widget(Widget(size_hint=[1, .3]))
+
+        adminLayout.add_widget(Widget(size_hint=[.05, 1]))
+        adminLayout.add_widget(colOne)
+        adminLayout.add_widget(Widget(size_hint=[.3, 1]))
+        adminLayout.add_widget(colTwo)
+        adminLayout.add_widget(Widget(size_hint=[.05, 1]))
+
+        fonLayout.add_widget(adminLayout)
+        self.add_widget(fonLayout)
         self.bind(on_pre_enter=self.cleanStatusPlayers)
     
     def restartApp(self, *args):
@@ -282,11 +395,11 @@ class Admin(Screen):
         self.cleanStatusPlayers()
 
     def cleanStatusPlayers(self, *args):
-        self.riba_kitRdyLbl.background_color = [1, 0, 0, 1]
-        self.tridevCarstvoRdyLbl.background_color = [1, 0, 0, 1]
-        self.lukomoreRdyLbl.background_color = [1, 0, 0, 1]
-        self.morskayaDergavaRdyLbl.background_color = [1, 0, 0, 1]
-        self.shamahanRdyLbl.background_color = [1, 0, 0, 1]        
+        self.riba_kitRdyLbl.text = self.red+'Isn`t ready[/b][/color]'
+        self.tridevCarstvoRdyLbl.text = self.red+'Isn`t ready[/b][/color]'
+        self.lukomoreRdyLbl.text = self.red+'Isn`t ready[/b][/color]'
+        self.morskayaDergavaRdyLbl.text = self.red+'Isn`t ready[/b][/color]'
+        self.shamahanRdyLbl.text = self.red+'Isn`t ready[/b][/color]'
 
     def changeStatusVote(self, *args):
         requests.get(self.settings.IP_Adress+'/changeStatusVote')
@@ -299,25 +412,31 @@ class Admin(Screen):
         isPlayersReady = requests.get(self.settings.IP_Adress+'/authorization/admin')
         playersStatus = isPlayersReady.json()
         if playersStatus['riba_kit'] == 'im ready' or playersStatus['riba_kit'] == 'answerGiven':
-            self.riba_kitRdyLbl.background_color = [0, 1, 0, 1]
+            self.riba_kitRdyLbl.text = self.green+'Is ready[/b][/color]'
         if playersStatus['tridevCarstvo'] == 'im ready' or playersStatus['tridevCarstvo'] == 'answerGiven':
-            self.tridevCarstvoRdyLbl.background_color = [0, 1, 0, 1]
+            self.tridevCarstvoRdyLbl.text = self.green+'Is ready[/b][/color]'
         if playersStatus['lukomore'] == 'im ready' or playersStatus['lukomore'] == 'answerGiven':
-            self.lukomoreRdyLbl.background_color = [0, 1, 0, 1]
+            self.lukomoreRdyLbl.text = self.green+'Is ready[/b][/color]'
         if playersStatus['morskayaDergava'] == 'im ready' or playersStatus['morskayaDergava'] == 'answerGiven':
-            self.morskayaDergavaRdyLbl.background_color = [0, 1, 0, 1]
+            self.morskayaDergavaRdyLbl.text = self.green+'Is ready[/b][/color]'
         if playersStatus['shamahan'] == 'im ready' or playersStatus['shamahan'] == 'answerGiven':
-            self.shamahanRdyLbl.background_color = [0, 1, 0, 1]        
+            self.shamahanRdyLbl.text = self.green+'Is ready[/b][/color]'
 
 
 class AdminPauseScreen(Screen):
     def __init__(self, **kwargs):
         super(AdminPauseScreen, self).__init__(**kwargs)
         self.settings = kwargs['settings']
+        fonLayout = FloatLayout()
+        adminFon = Image(source='adminFon.jpg', allow_stretch = True)
         mainScreen = BoxLayout()
-        roundLbl = Label(text='PAUSE')
+        roundLbl = Label(text='[color=D7F5FF][b]Transition to the \nnext level...[/b][/color]', markup = True, font_size = 30, size_hint=[1, .3])
         mainScreen.add_widget(roundLbl)
-        self.add_widget(mainScreen)
+        mainScreen.add_widget(Widget(size_hint=[1, .8]))
+
+        fonLayout.add_widget(adminFon)
+        fonLayout.add_widget(mainScreen)
+        self.add_widget(fonLayout)
         self.bind(on_enter=self.changeScreen)
 
     def changeScreen(self, *args):
@@ -378,7 +497,7 @@ class MySettings(object):
         self.question = ''
         self.questionAddition = ''
         self.numberOfQuestion = ''
-        self.votingResult = {'zero_yes':0, 'zero_no':0, 'final_yes':0, 'final_no':0}
+        self.votingResult = {'zero_yes':0, 'zero_no':0, 'one_yes':0, 'one_no':0, 'two_yes':0, 'two_no':0, 'three_yes':0, 'three_no':0, 'four_yes':0, 'four_no':0, 'five_yes':0, 'five_no':0, 'final_yes':0, 'final_no':0}
         if self.store.exists('IP'):
             self.IP_Adress = self.store.get('IP')['data']
 
@@ -451,7 +570,8 @@ class Waiting(Screen):
 
     def updateBlazonImg(self, *args):
         self.blazonImg.source = self.settings.clientCoutnry + '.png'
-
+        #тут же обновим текст на кнопке
+        self.waitBtn.text = '[color=D7F5FF][b]ПРИСТУПИТЬ К ГОЛОСОВАНИЮ[/b][/color]'
 
 class Answer(Screen):
     def __init__(self, **kwargs):
@@ -466,10 +586,11 @@ class Answer(Screen):
         self.blazonImg = Image(source='riba_kit.png', allow_stretch = True, size_hint=(.4, 1))
         self.questionLbl = Label(text='ВОПРОС', size_hint=(.6, 1), markup = True, font_size = 28, halign='left', valign='center')
         self.questionLbl.bind(size=self.questionLbl.setter('text_size'))
+        rowsOneInColsOneLayout.add_widget(Widget(size_hint=(0.05, 1)))
         rowsOneInColsOneLayout.add_widget(self.blazonImg)
+        rowsOneInColsOneLayout.add_widget(Widget(size_hint=(0.05, 1)))
         rowsOneInColsOneLayout.add_widget(self.questionLbl)
         colsOneLayout.add_widget(rowsOneInColsOneLayout)
-
         rowsTwoInColsOneLayout = BoxLayout(orientation='horizontal', size_hint=(1, .3))
         btnYes = RoundedFlatButton(
             on_press = self.answerYes,
@@ -516,6 +637,7 @@ class Answer(Screen):
             self.listOfWitgetsOnRightCol[-1].rowThreeLbl.text = '[color=D9FFFF]ЗА - ' + str(self.settings.votingResult[self.settings.previousRound +'_yes']) + ', ПРОТИВ - ' + str(self.settings.votingResult[self.settings.previousRound+'_no']) + '[/color]'
             self.listOfWitgetsOnRightCol.append(WitgetForRightCol(numberOfQuestion=self.settings.numberOfQuestion, question=self.settings.question))          
             self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1].mainLayout)
+        self.settings.store.put('listOfWitgetsOnRightCol', data=self.listOfWitgetsOnRightCol)
 
     def updateLbl(self, *args):
         colOneBold = '[color=8B452D][b]'
@@ -570,7 +692,9 @@ class Result(Screen):
         self.blazonImg = Image(source='riba_kit.png', allow_stretch = True, size_hint=(.4, 1))
         self.questionLbl = Label(text='ВОПРОС', size_hint=(.6, 1), markup = True, font_size = 28, halign='left', valign='center')
         self.questionLbl.bind(size=self.questionLbl.setter('text_size'))
+        rowsOneInColsOneLayout.add_widget(Widget(size_hint=(0.05, 1)))        
         rowsOneInColsOneLayout.add_widget(self.blazonImg)
+        rowsOneInColsOneLayout.add_widget(Widget(size_hint=(0.05, 1)))        
         rowsOneInColsOneLayout.add_widget(self.questionLbl)
         colsOneLayout.add_widget(rowsOneInColsOneLayout)
         rowsTwoInColsOneLayout = BoxLayout(orientation='horizontal', size_hint=(1, .3))
@@ -635,12 +759,12 @@ class Final(Screen):
         fonLayout = FloatLayout()
         authFon = Image(source='authFon.png', allow_stretch = True)
         fonLayout.add_widget(authFon)
-        finalScreen = GridLayout(spacing = 1, cols=5)
-        self.roundOne = Label(markup = True, font_size = 16)
-        self.roundTwo = Label(markup = True, font_size = 16)
-        self.roundThree = Label(markup = True, font_size = 16)
-        self.roundFour = Label(markup = True, font_size = 16)
-        self.roundFive = Label(markup = True, font_size = 16)
+        finalScreen = GridLayout(spacing = 1, padding=20, cols=5)
+        self.roundOne = Label(markup = True, font_size = 15)
+        self.roundTwo = Label(markup = True, font_size = 15)
+        self.roundThree = Label(markup = True, font_size = 15)
+        self.roundFour = Label(markup = True, font_size = 15)
+        self.roundFive = Label(markup = True, font_size = 15)
         finalScreen.add_widget(Widget())
         finalScreen.add_widget(Widget())
         finalScreen.add_widget(Label(text='[color=C8E3FE][b]Подведение итогов[/b][/color]', markup = True, font_size = 28))
@@ -648,26 +772,19 @@ class Final(Screen):
         finalScreen.add_widget(Widget())    
         finalScreen.add_widget(self.roundOne)
         finalScreen.add_widget(Widget())
-
         finalScreen.add_widget(self.roundTwo)
         finalScreen.add_widget(Widget())
-
         finalScreen.add_widget(self.roundThree)
-
         finalScreen.add_widget(Widget())
-
         finalScreen.add_widget(self.roundFour)
         finalScreen.add_widget(Widget())
-
         finalScreen.add_widget(self.roundFive)
         finalScreen.add_widget(Widget())
-
         finalScreen.add_widget(Widget())   
         finalScreen.add_widget(Widget())
         finalScreen.add_widget(Widget())   
         finalScreen.add_widget(Widget()) 
         finalScreen.add_widget(Widget()) 
-
         finalScreen.add_widget(Widget()) 
         finalScreen.add_widget(Widget()) 
         finalScreen.add_widget(Widget()) 
