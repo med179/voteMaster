@@ -103,7 +103,6 @@ class VoteMaser(App):
                         self.addAnswerRightWitgets()
                         self.addResultRightWitgets()
                         request.clientCallback()
-                        sleep(2)
                         myScreenmanager.current = 'Result'
                     if statusPlayers[self.settings.clientCoutnry] == 'final':
                         request.clientCallback()
@@ -120,7 +119,7 @@ class VoteMaser(App):
             numberOfQuestion = 'Вопрос ' + str(self.settings.intRound)
             question = questionsJson[strRound]
             result = 'ЗА - '+str(self.settings.votingResult[strRound+'_yes'])+', ПРОТИВ - '+str(self.settings.votingResult[strRound+'_no'])
-            self.answer.colsTwoLayout.add_widget(WitgetForRightCol(numberOfQuestion, question, result))      
+            self.answer.colsTwoLayout.add_widget(WitgetForRightCol(numberOfQuestion=numberOfQuestion, question=question, result=result))      
 
     def addResultRightWitgets(self, *args):
         getQuestions = requests.get(self.settings.IP_Adress+'/dictAllQuestions')
@@ -130,11 +129,12 @@ class VoteMaser(App):
             numberOfQuestion = 'Вопрос ' + str(self.settings.intRound)
             question = questionsJson[strRound]
             result = 'ЗА - '+str(self.settings.votingResult[strRound+'_yes'])+', ПРОТИВ - '+str(self.settings.votingResult[strRound+'_no'])
-            self.result.colsTwoLayout.add_widget(WitgetForRightCol(numberOfQuestion, question, result))  
+            self.result.colsTwoLayout.add_widget(WitgetForRightCol(numberOfQuestion=numberOfQuestion, question=question, result=result))  
 
     def updateSettings(self, *args):
-        response = requests.get(self.settings.IP_Adress+'/allSettings/' + self.settings.round + '/' + self.settings.clientCoutnry)
+        response = requests.get(self.settings.IP_Adress+'/allSettings/' + self.settings.previousRound + '/' + self.settings.clientCoutnry)
         allSettings = response.json()
+        print allSettings
         self.settings.numberOfQuestion = allSettings['numberOfQuestion']
         self.settings.question = allSettings['question']
         self.settings.questionAddition = allSettings['addition']
