@@ -65,48 +65,44 @@ class VoteMaser(App):
                 if self.settings.store.get('gameStatus')['data'] == 'gameIsOn':
                     self.settings.clientCoutnry = self.settings.store.get('clientCoutnry')['data']
                 #открываем нужный экран    
+                    getRound = requests.get(self.settings.IP_Adress+'/status')
+                    rounsJson = getRound.json()
+                    if rounsJson['round'] == 'one':
+                        self.settings.round = 'zero'
+                        self.settings.previousRound = 'zero'
+                        self.settings.intRound = 0
+                    if rounsJson['round'] == 'two':
+                        self.settings.round = 'one'
+                        self.settings.previousRound = 'one'
+                        self.settings.intRound = 1
+                    if rounsJson['round'] == 'three':              
+                        self.settings.round = 'two'     
+                        self.settings.previousRound = 'two'  
+                        self.settings.intRound = 2   
+                    if rounsJson['round'] == 'four':
+                        self.settings.round = 'three'
+                        self.settings.previousRound = 'three'
+                        self.settings.intRound = 3
+                    if rounsJson['round'] == 'five':
+                        self.settings.round = 'four'   
+                        self.settings.previousRound = 'four' 
+                        self.settings.intRound = 4
+                    self.updateSettings()
+                    self.addAnswerRightWitgets()
+                    self.addResultRightWitgets()
+
                     getData = requests.get(self.settings.IP_Adress+'/authorization/admin')
                     statusPlayers = getData.json()
-                    if statusPlayers[self.settings.clientCoutnry] == 'answerIsNotGiven':
-                        getRound = requests.get(self.settings.IP_Adress+'/status')
-                        rounsJson = getRound.json()
-                        if rounsJson['round'] == 'one':
-                            self.settings.round = 'zero'
-                            self.settings.previousRound = 'zero'
-                            self.settings.intRound = 0
-                        if rounsJson['round'] == 'two':
-                            self.settings.round = 'one'
-                            self.settings.previousRound = 'one'
-                            self.settings.intRound = 1
-                        if rounsJson['round'] == 'three':              
-                            self.settings.round = 'two'     
-                            self.settings.previousRound = 'two'  
-                            self.settings.intRound = 2   
-                        if rounsJson['round'] == 'four':
-                            self.settings.round = 'three'
-                            self.settings.previousRound = 'three'
-                            self.settings.intRound = 3
-                        if rounsJson['round'] == 'five':
-                            self.settings.round = 'four'   
-                            self.settings.previousRound = 'four' 
-                            self.settings.intRound = 4
-                        self.updateSettings()
-                        self.addAnswerRightWitgets()
-                        self.addResultRightWitgets()
-                        request.clientCallback()      
+
+                    if statusPlayers[self.settings.clientCoutnry] == 'answerIsNotGiven':      
                         myScreenmanager.current = 'Answer'
                     if statusPlayers[self.settings.clientCoutnry] == 'answerGiven':
-                        getRound = requests.get(self.settings.IP_Adress+'/status')
-                        rounsJson = getRound.json()
-                        self.settings.round = rounsJson['round']
-                        self.updateSettings()
-                        self.addAnswerRightWitgets()
-                        self.addResultRightWitgets()
-                        request.clientCallback()
                         myScreenmanager.current = 'Result'
+                        self.settings.round = rounsJson['round']
                     if statusPlayers[self.settings.clientCoutnry] == 'final':
-                        request.clientCallback()
                         myScreenmanager.current = 'Final'
+
+                    request.clientCallback()
             else:
                 myScreenmanager.current = 'Authorization'        
         return myScreenmanager
@@ -119,7 +115,8 @@ class VoteMaser(App):
             numberOfQuestion = 'Вопрос ' + str(self.settings.intRound)
             question = questionsJson[strRound]
             result = 'ЗА - '+str(self.settings.votingResult[strRound+'_yes'])+', ПРОТИВ - '+str(self.settings.votingResult[strRound+'_no'])
-            self.answer.colsTwoLayout.add_widget(WitgetForRightCol(numberOfQuestion=numberOfQuestion, question=question, result=result))      
+            self.answer.listOfWitgetsOnRightCol.append(WitgetForRightCol(numberOfQuestion=numberOfQuestion, question=question, result=result))
+            self.answer.colsTwoLayout.add_widget(self.answer.listOfWitgetsOnRightCol[-1].mainLayout)      
 
     def addResultRightWitgets(self, *args):
         getQuestions = requests.get(self.settings.IP_Adress+'/dictAllQuestions')
@@ -129,16 +126,18 @@ class VoteMaser(App):
             numberOfQuestion = 'Вопрос ' + str(self.settings.intRound)
             question = questionsJson[strRound]
             result = 'ЗА - '+str(self.settings.votingResult[strRound+'_yes'])+', ПРОТИВ - '+str(self.settings.votingResult[strRound+'_no'])
-            self.result.colsTwoLayout.add_widget(WitgetForRightCol(numberOfQuestion=numberOfQuestion, question=question, result=result))  
+            self.result.listOfWitgetsOnRightCol.append(WitgetForRightCol(numberOfQuestion=numberOfQuestion, question=question, result=result))
+            self.result.colsTwoLayout.add_widget(self.result.listOfWitgetsOnRightCol[-1].mainLayout)     
 
     def updateSettings(self, *args):
         response = requests.get(self.settings.IP_Adress+'/allSettings/' + self.settings.previousRound + '/' + self.settings.clientCoutnry)
         allSettings = response.json()
-        print allSettings
         self.settings.numberOfQuestion = allSettings['numberOfQuestion']
         self.settings.question = allSettings['question']
         self.settings.questionAddition = allSettings['addition']
-
+        response = requests.get(self.settings.IP_Adress+'/result/'+self.settings.round)
+        votingResult = response.json()
+        self.settings.votingResult = votingResult
 
 class EnterNewIP(Screen):
     def __init__(self, **kwargs):
@@ -267,18 +266,19 @@ class Authorization(Screen):
         authorizationLayout.add_widget(Widget())
         authorizationLayout.add_widget(Widget())    
         authorizationLayout.add_widget(riba_kitBtn)
+        authorizationLayout.add_widget(Widget())
         authorizationLayout.add_widget(tridevCarstvoBtn)
+        authorizationLayout.add_widget(Widget())
         authorizationLayout.add_widget(lukomoreBtn)
+        authorizationLayout.add_widget(Widget())
         authorizationLayout.add_widget(morskayaDergavaBtn)
+        authorizationLayout.add_widget(Widget())
         authorizationLayout.add_widget(shamahanBtn)
         authorizationLayout.add_widget(Widget())
         authorizationLayout.add_widget(Widget())
         authorizationLayout.add_widget(Widget())
-        authorizationLayout.add_widget(Widget())
-        authorizationLayout.add_widget(Widget())
-        authorizationLayout.add_widget(Widget())
-        authorizationLayout.add_widget(Widget())
         authorizationLayout.add_widget(adminBtn)
+        authorizationLayout.add_widget(Widget())
         authorizationLayout.add_widget(Widget())
         authorizationLayout.add_widget(Widget())
         authorizationLayout.add_widget(Widget())
@@ -649,7 +649,7 @@ class Answer(Screen):
         self.blazonImg.source = self.settings.clientCoutnry + '.png'
 
     def updateColsTwo(self, *args):
-        if self.settings.round == 'one':
+        if self.settings.round == 'zero' or 'one':
             self.listOfWitgetsOnRightCol.append(WitgetForRightCol(numberOfQuestion=self.settings.numberOfQuestion, question=self.settings.question))
             self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1].mainLayout)
         else:
@@ -747,7 +747,7 @@ class Result(Screen):
         self.add_widget(fonLayout)
 
     def updateColsTwo(self, *args):
-        if self.settings.round == 'one':
+        if self.settings.round == 'zero' or 'one':
             self.listOfWitgetsOnRightCol.append(WitgetForRightCol(numberOfQuestion=self.settings.numberOfQuestion, question=self.settings.question))
             self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1].mainLayout)
         else:
