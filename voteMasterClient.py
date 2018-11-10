@@ -24,7 +24,7 @@ from kivy.graphics import *
 from kivy.graphics.vertex_instructions import RoundedRectangle
 from kivy.uix.behaviors import ButtonBehavior
 
-divider = 2
+divider = 1
 Config.set('graphics', 'resizable', 1)
 Config.set('graphics', 'width', 1920/divider)
 Config.set('graphics', 'height', 1200/divider)
@@ -337,8 +337,8 @@ class Admin(Screen):
     def __init__(self, **kwargs):
         super(Admin, self).__init__(**kwargs)
         self.settings = kwargs['settings']
-        self.red = '[color=FD0302][b]'
-        self.green = '[color=00642F][b]'
+        self.red = '[color=DF2447][b]'
+        self.green = '[color=01CC8B][b]'
         fonLayout = FloatLayout()
         adminFon = Image(source='adminFon.jpg', allow_stretch = True)
         fonLayout.add_widget(adminFon)
@@ -384,7 +384,7 @@ class Admin(Screen):
             markup = True, 
             font_size = 24,
             size_hint=[1, .3],
-            background_color=[.64, .2, .2, 1],
+            background_color=[.81, .14, .28, 1],
             background_normal = '')
         colOne.add_widget(Widget(size_hint=[1, .15]))
         colOne.add_widget(riba_kitBox)
@@ -727,7 +727,7 @@ class Result(Screen):
         colsOneLayout.add_widget(rowsOneInColsOneLayout)
         rowsTwoInColsOneLayout = BoxLayout(orientation='horizontal', size_hint=(1, .3))
         self.ansYes = Label(
-            text='[color=00642F][b]ЗА[/b][/color]', 
+            text='[color=01CC8B][b]ЗА[/b][/color]', 
             markup = True, 
             font_size = 24,
             size_hint=(.7, .5))
@@ -780,8 +780,8 @@ class Result(Screen):
         self.blazonImg.source = self.settings.clientCoutnry + '.png'
 
     def updateLbl(self, *args):
-        self.ansYes.text = '[color=00642F][b]ЗА  [size=48]' + str(self.settings.votingResult[self.settings.round+'_yes']) + '[/size] [/b][/color]'
-        self.ansNo.text = '[color=FD0302][b][size=48]' + str(self.settings.votingResult[self.settings.round+'_no']) + '[/size] ПРОТИВ[/b][/color]'
+        self.ansYes.text = '[color=01CC8B][b]ЗА  [size=48]' + str(self.settings.votingResult[self.settings.round+'_yes']) + '[/size] [/b][/color]'
+        self.ansNo.text = '[color=DF2447][b][size=48]' + str(self.settings.votingResult[self.settings.round+'_no']) + '[/size] ПРОТИВ[/b][/color]'
     
 
 class Final(Screen):
@@ -792,11 +792,11 @@ class Final(Screen):
         authFon = Image(source='authFon.png', allow_stretch = True)
         fonLayout.add_widget(authFon)
         finalScreen = GridLayout(spacing = 1, padding=20, cols=5)
-        self.roundOne = Label(markup = True, font_size = 15)
-        self.roundTwo = Label(markup = True, font_size = 15)
-        self.roundThree = Label(markup = True, font_size = 15)
-        self.roundFour = Label(markup = True, font_size = 15)
-        self.roundFive = Label(markup = True, font_size = 15)
+        self.roundOne = Label(markup = True, font_size = 15, halign = 'center')
+        self.roundTwo = Label(markup = True, font_size = 15, halign = 'center')
+        self.roundThree = Label(markup = True, font_size = 15, halign = 'center')
+        self.roundFour = Label(markup = True, font_size = 15, halign = 'center')
+        self.roundFive = Label(markup = True, font_size = 15, halign = 'center')
         finalScreen.add_widget(Widget())
         finalScreen.add_widget(Widget())
         finalScreen.add_widget(Label(text='[color=C8E3FE][b]Подведение итогов[/b][/color]', markup = True, font_size = 28))
@@ -844,9 +844,9 @@ class Final(Screen):
 
     def resultInRound(self, round, *args):
         if self.settings.votingResult[round+'_yes'] < self.settings.votingResult[round+'_no']:
-            return '\n[color=FD0302][b]РЕШЕНИЕ ОТКЛОНЕНО[/b][/color]'
+            return '\n[color=DF2447][b]РЕШЕНИЕ ОТКЛОНЕНО[/b][/color]'
         else:
-            return '\n[color=00642F][b]РЕШЕНИЕ ПРИНЯТО[/b][/color]'
+            return '\n[color=01CC8B][b]РЕШЕНИЕ ПРИНЯТО[/b][/color]'
 
 
 if __name__ == "__main__":
