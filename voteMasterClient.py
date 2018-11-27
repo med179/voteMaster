@@ -657,7 +657,6 @@ class Answer(Screen):
             self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1].mainLayout)
         else:
             self.listOfWitgetsOnRightCol[-1].rowThreeLbl.text = '[color=D9FFFF]ЗА - ' + str(self.settings.votingResult[self.settings.previousRound +'_yes']) + ', ПРОТИВ - ' + str(self.settings.votingResult[self.settings.previousRound+'_no']) + '[/color]'
-            print (str(self.settings.votingResult[self.settings.previousRound +'_yes']) + ', ПРОТИВ - ' + str(self.settings.votingResult[self.settings.previousRound+'_no']))
             self.listOfWitgetsOnRightCol.append(WitgetForRightCol(numberOfQuestion=self.settings.numberOfQuestion, question=self.settings.question))          
             self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1].mainLayout)
 
@@ -763,7 +762,6 @@ class Result(Screen):
             self.listOfWitgetsOnRightCol.append(WitgetForRightCol(numberOfQuestion=self.settings.numberOfQuestion, question=self.settings.question))
             self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1].mainLayout)
         else:
-            print self.settings.votingResult
             self.listOfWitgetsOnRightCol[-1].rowThreeLbl.text = '[color=D9FFFF]ЗА - ' + str(self.settings.votingResult[self.settings.previousRound +'_yes']) + ', ПРОТИВ - ' + str(self.settings.votingResult[self.settings.previousRound+'_no']) + '[/color]'
             self.listOfWitgetsOnRightCol.append(WitgetForRightCol(numberOfQuestion=self.settings.numberOfQuestion, question=self.settings.question))          
             self.colsTwoLayout.add_widget(self.listOfWitgetsOnRightCol[-1].mainLayout)

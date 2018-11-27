@@ -161,4 +161,4 @@ def restartApp():
     for key in statusPlayers:
         statusPlayers[key] = 'answerIsNotGiven'
 
-run(host='localhost', port=8080)
+run(host='0.0.0.0', port=8080)
